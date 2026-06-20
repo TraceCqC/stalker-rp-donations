@@ -1,0 +1,6 @@
+{
+  "steam-callback": "https://functions.poehali.dev/edbd3d47-b8f0-4f79-beaf-4ba48d8f3bf6",
+  "auth-me": "https://functions.poehali.dev/085b5268-60a1-42ec-92f7-19cb411dcd7d",
+  "steam-login": "https://functions.poehali.dev/c009e5f0-9192-4bd4-b1f1-079159a97c98",
+  "auth-logout": "https://functions.poehali.dev/3f106363-957e-4cd7-9dee-5468f71d6997"
+}

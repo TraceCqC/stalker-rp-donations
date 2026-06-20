@@ -1,0 +1,12 @@
+{
+  "tests": [
+    {
+      "name": "Logout without session returns ok",
+      "method": "POST",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {"ok": true},
+      "bodyMatcher": "partial"
+    }
+  ]
+}

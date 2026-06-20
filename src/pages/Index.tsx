@@ -3,6 +3,7 @@ import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/use-auth';
 
 const HERO = 'https://cdn.poehali.dev/projects/bb154877-b93f-4589-958f-2fb7ea6b58fe/files/8f9ca15d-a21a-4ffe-994d-3d6f8ad6d774.jpg';
 const SIGN = 'https://cdn.poehali.dev/projects/bb154877-b93f-4589-958f-2fb7ea6b58fe/files/9d913198-f058-4331-9e65-3927b06a9375.jpg';
@@ -124,6 +125,7 @@ export default function Index() {
   const { toast } = useToast();
   const [active, setActive] = useState('lore');
   const [selectedFaction, setSelectedFaction] = useState<string | null>(null);
+  const { user, loading: authLoading, loginWithSteam } = useAuth();
 
   const scrollTo = (id: string) => {
     setActive(id);
@@ -162,9 +164,26 @@ export default function Index() {
               </button>
             ))}
           </nav>
-          <Button onClick={() => scrollTo('connect')} className="font-display uppercase tracking-wider">
-            <Icon name="Zap" size={16} className="mr-1" /> Играть
-          </Button>
+          <div className="flex items-center gap-2">
+            {!authLoading && (
+              user ? (
+                <a href="/cabinet" className="flex items-center gap-2 border border-border bg-card px-3 py-1.5 transition-colors hover:border-primary">
+                  {user.avatar_url
+                    ? <img src={user.avatar_url} alt="" className="h-6 w-6 object-cover" />
+                    : <Icon name="User" size={16} className="text-primary" />
+                  }
+                  <span className="font-display text-sm uppercase tracking-wider">{user.username}</span>
+                </a>
+              ) : (
+                <Button variant="outline" size="sm" onClick={loginWithSteam} className="border-primary/40 font-display uppercase tracking-wider">
+                  <Icon name="LogIn" size={16} className="mr-1" /> Steam
+                </Button>
+              )
+            )}
+            <Button onClick={() => scrollTo('connect')} className="font-display uppercase tracking-wider">
+              <Icon name="Zap" size={16} className="mr-1" /> Играть
+            </Button>
+          </div>
         </div>
       </header>
 
