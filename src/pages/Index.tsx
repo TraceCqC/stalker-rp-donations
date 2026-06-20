@@ -11,9 +11,73 @@ const SERVER_IP = '185.220.101.42:2302';
 
 const NAV = [
   { id: 'lore', label: 'Лор', icon: 'BookOpen' },
+  { id: 'factions', label: 'Фракции', icon: 'Users' },
   { id: 'connect', label: 'Подключение', icon: 'Wifi' },
   { id: 'news', label: 'Новости', icon: 'Radio' },
   { id: 'shop', label: 'Магазин', icon: 'ShoppingCart' },
+];
+
+const FACTIONS = [
+  {
+    name: 'Долг',
+    icon: 'Shield',
+    color: 'text-red-400',
+    borderColor: 'hover:border-red-500/60 data-active:border-red-500',
+    alignment: 'Порядок',
+    desc: 'Военизированная группировка, цель которой — уничтожение Зоны. Железная дисциплина, тяжёлое вооружение, нулевая терпимость к мародёрам.',
+    base: 'Бар «100 рентген»',
+    style: 'Агрессивный',
+  },
+  {
+    name: 'Свобода',
+    icon: 'Wind',
+    color: 'text-green-400',
+    borderColor: 'hover:border-green-500/60',
+    alignment: 'Хаос',
+    desc: 'Анархисты Зоны. Убеждены, что Зона — это дар человечеству. Открытый доступ к аномалиям для всех. Вечная война с Долгом.',
+    base: 'Армейские склады',
+    style: 'Поддержка',
+  },
+  {
+    name: 'ОКСОП',
+    icon: 'Eye',
+    color: 'text-blue-400',
+    borderColor: 'hover:border-blue-500/60',
+    alignment: 'Закон',
+    desc: 'Отряд контроля и соблюдения общественного порядка. Официальная силовая структура, охраняющая периметр и патрулирующая Зону.',
+    base: 'Контрольно-пропускные пункты',
+    style: 'Тактический',
+  },
+  {
+    name: 'Монолит',
+    icon: 'Triangle',
+    color: 'text-purple-400',
+    borderColor: 'hover:border-purple-500/60',
+    alignment: 'Фанатизм',
+    desc: 'Загадочная секта, поклоняющаяся Монолиту — источнику исполнения желаний. Безжалостны, безрассудны и смертоносны. Никто не знает, кем они были раньше.',
+    base: 'Саркофаг ЧАЭС',
+    style: 'Берсерк',
+  },
+  {
+    name: 'Грех',
+    icon: 'Skull',
+    color: 'text-orange-400',
+    borderColor: 'hover:border-orange-500/60',
+    alignment: 'Тьма',
+    desc: 'Тайная организация с мистическими ритуалами. Торгуют запрещёнными артефактами и информацией. Встреча с ними — дурной знак.',
+    base: 'Неизвестно',
+    style: 'Скрытный',
+  },
+  {
+    name: 'Бандиты',
+    icon: 'Flame',
+    color: 'text-yellow-400',
+    borderColor: 'hover:border-yellow-500/60',
+    alignment: 'Мародёрство',
+    desc: 'Отбросы Зоны. Грабят одиночек, торгуют краденым и устраивают засады. Ненавидимы всеми, но живут дольше, чем хотелось бы.',
+    base: 'Тёмная долина',
+    style: 'Набег',
+  },
 ];
 
 const NEWS = [
@@ -59,6 +123,7 @@ const SHOP_CATS = [
 export default function Index() {
   const { toast } = useToast();
   const [active, setActive] = useState('lore');
+  const [selectedFaction, setSelectedFaction] = useState<string | null>(null);
 
   const scrollTo = (id: string) => {
     setActive(id);
@@ -150,17 +215,78 @@ export default function Index() {
           <div className="mt-12 grid gap-8 lg:grid-cols-3">
             {[
               { icon: 'Atom', title: 'Второй взрыв', text: 'В 2006 году над ЧАЭС произошёл повторный выброс. Привычный мир рухнул — родилась Зона с её аномалиями и мутантами.' },
-              { icon: 'Users', title: 'Фракции', text: 'Долг, Свобода, Бандиты, Наёмники и одиночки. Каждая группировка борется за контроль над артефактами и территорией.' },
+              { icon: 'Users', title: 'Фракции', text: 'Долг, Свобода, ОКСОП, Монолит, Грех и Бандиты. Каждая группировка борется за контроль над артефактами и территорией.', action: 'factions' },
               { icon: 'Sparkles', title: 'Артефакты', text: 'Порождения аномалий, дающие сверхспособности и смертельную радиацию. За них готовы убивать — и умирать.' },
             ].map((c, i) => (
-              <div key={c.title} className="grain rust-border group bg-card p-8 transition-all hover:border-primary/50 animate-fade-in" style={{ animationDelay: `${i * 100}ms` }}>
+              <div
+                key={c.title}
+                onClick={() => c.action && scrollTo(c.action)}
+                className={`grain rust-border group bg-card p-8 transition-all hover:border-primary/50 animate-fade-in ${c.action ? 'cursor-pointer' : ''}`}
+                style={{ animationDelay: `${i * 100}ms` }}
+              >
                 <div className="mb-5 flex h-14 w-14 items-center justify-center bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
                   <Icon name={c.icon} size={28} />
                 </div>
                 <h3 className="font-display text-2xl font-semibold uppercase tracking-wide">{c.title}</h3>
                 <p className="mt-3 font-body text-muted-foreground">{c.text}</p>
+                {c.action && (
+                  <div className="mt-4 flex items-center gap-1 font-display text-xs uppercase tracking-widest text-primary opacity-0 transition-opacity group-hover:opacity-100">
+                    Все фракции <Icon name="ArrowRight" size={14} />
+                  </div>
+                )}
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FACTIONS */}
+      <section id="factions" className="relative border-t border-border py-24">
+        <div className="container px-4">
+          <SectionTitle icon="Users" sub="Группировки Зоны" title="Фракции" />
+          <p className="mt-4 max-w-2xl font-body text-muted-foreground">
+            Выбери фракцию — узнай её цели, базу и боевой стиль.
+          </p>
+          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {FACTIONS.map((f) => {
+              const isOpen = selectedFaction === f.name;
+              return (
+                <div key={f.name} className="flex flex-col">
+                  <button
+                    onClick={() => setSelectedFaction(isOpen ? null : f.name)}
+                    className={`grain rust-border group flex items-center gap-4 bg-card p-6 text-left transition-all ${isOpen ? 'border-primary/70 bg-card' : 'hover:border-primary/40'}`}
+                  >
+                    <div className={`flex h-14 w-14 shrink-0 items-center justify-center bg-card border border-border transition-colors ${isOpen ? 'bg-primary border-primary' : 'group-hover:bg-primary/10'}`}>
+                      <Icon name={f.icon} size={28} className={isOpen ? 'text-primary-foreground' : f.color} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-display text-2xl font-bold uppercase tracking-wide">{f.name}</div>
+                      <div className={`mt-1 font-display text-xs uppercase tracking-widest ${f.color}`}>{f.alignment}</div>
+                    </div>
+                    <Icon
+                      name="ChevronDown"
+                      size={20}
+                      className={`shrink-0 text-muted-foreground transition-transform duration-300 ${isOpen ? 'rotate-180 text-primary' : ''}`}
+                    />
+                  </button>
+                  {isOpen && (
+                    <div className="grain border border-t-0 border-primary/40 bg-card/80 p-6 animate-fade-in">
+                      <p className="font-body text-muted-foreground">{f.desc}</p>
+                      <div className="mt-5 grid grid-cols-2 gap-3">
+                        <div className="border border-border bg-background/50 p-3">
+                          <div className="font-display text-xs uppercase tracking-widest text-muted-foreground">База</div>
+                          <div className="mt-1 font-body text-sm">{f.base}</div>
+                        </div>
+                        <div className="border border-border bg-background/50 p-3">
+                          <div className="font-display text-xs uppercase tracking-widest text-muted-foreground">Стиль игры</div>
+                          <div className={`mt-1 font-body text-sm font-semibold ${f.color}`}>{f.style}</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
