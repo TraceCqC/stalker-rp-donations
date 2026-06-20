@@ -23,61 +23,57 @@ const FACTIONS = [
     name: 'Долг',
     icon: 'Shield',
     color: 'text-red-400',
-    borderColor: 'hover:border-red-500/60 data-active:border-red-500',
     alignment: 'Порядок',
     desc: 'Военизированная группировка, цель которой — уничтожение Зоны. Железная дисциплина, тяжёлое вооружение, нулевая терпимость к мародёрам.',
-    base: 'Бар «100 рентген»',
-    style: 'Агрессивный',
   },
   {
     name: 'Свобода',
     icon: 'Wind',
     color: 'text-green-400',
-    borderColor: 'hover:border-green-500/60',
     alignment: 'Хаос',
     desc: 'Анархисты Зоны. Убеждены, что Зона — это дар человечеству. Открытый доступ к аномалиям для всех. Вечная война с Долгом.',
-    base: 'Армейские склады',
-    style: 'Поддержка',
   },
   {
     name: 'ОКСОП',
     icon: 'Eye',
     color: 'text-blue-400',
-    borderColor: 'hover:border-blue-500/60',
     alignment: 'Закон',
     desc: 'Отряд контроля и соблюдения общественного порядка. Официальная силовая структура, охраняющая периметр и патрулирующая Зону.',
-    base: 'Контрольно-пропускные пункты',
-    style: 'Тактический',
   },
   {
     name: 'Монолит',
     icon: 'Triangle',
     color: 'text-purple-400',
-    borderColor: 'hover:border-purple-500/60',
     alignment: 'Фанатизм',
     desc: 'Загадочная секта, поклоняющаяся Монолиту — источнику исполнения желаний. Безжалостны, безрассудны и смертоносны. Никто не знает, кем они были раньше.',
-    base: 'Саркофаг ЧАЭС',
-    style: 'Берсерк',
   },
   {
     name: 'Грех',
     icon: 'Skull',
     color: 'text-orange-400',
-    borderColor: 'hover:border-orange-500/60',
     alignment: 'Тьма',
     desc: 'Тайная организация с мистическими ритуалами. Торгуют запрещёнными артефактами и информацией. Встреча с ними — дурной знак.',
-    base: 'Неизвестно',
-    style: 'Скрытный',
   },
   {
     name: 'Бандиты',
     icon: 'Flame',
     color: 'text-yellow-400',
-    borderColor: 'hover:border-yellow-500/60',
     alignment: 'Мародёрство',
     desc: 'Отбросы Зоны. Грабят одиночек, торгуют краденым и устраивают засады. Ненавидимы всеми, но живут дольше, чем хотелось бы.',
-    base: 'Тёмная долина',
-    style: 'Набег',
+  },
+  {
+    name: 'Чистое Небо',
+    icon: 'CloudSun',
+    color: 'text-cyan-400',
+    alignment: 'Исследование',
+    desc: 'Наёмная группировка, стремящаяся остановить расширение Зоны. Изучают аномалии, охотятся за артефактами и противостоят выбросам.',
+  },
+  {
+    name: 'Учёные',
+    icon: 'FlaskConical',
+    color: 'text-lime-400',
+    alignment: 'Наука',
+    desc: 'Гражданские исследователи под эгидой института «Агропром». Не воюют, но знают о Зоне больше всех. Их данные стоят дороже любого артефакта.',
   },
 ];
 
@@ -291,16 +287,6 @@ export default function Index() {
                   {isOpen && (
                     <div className="grain border border-t-0 border-primary/40 bg-card/80 p-6 animate-fade-in">
                       <p className="font-body text-muted-foreground">{f.desc}</p>
-                      <div className="mt-5 grid grid-cols-2 gap-3">
-                        <div className="border border-border bg-background/50 p-3">
-                          <div className="font-display text-xs uppercase tracking-widest text-muted-foreground">База</div>
-                          <div className="mt-1 font-body text-sm">{f.base}</div>
-                        </div>
-                        <div className="border border-border bg-background/50 p-3">
-                          <div className="font-display text-xs uppercase tracking-widest text-muted-foreground">Стиль игры</div>
-                          <div className={`mt-1 font-body text-sm font-semibold ${f.color}`}>{f.style}</div>
-                        </div>
-                      </div>
                     </div>
                   )}
                 </div>
