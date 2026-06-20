@@ -182,7 +182,7 @@ export default function Index() {
             </div>
             <h1 className="font-display text-6xl font-bold uppercase leading-[0.9] tracking-tight md:text-8xl">
               Добро пожаловать <br />
-              <span className="text-primary animate-flicker">в Зону</span>
+              <span className="text-primary animate-flicker">на Night Zone</span>
             </h1>
             <p className="mt-6 max-w-xl font-body text-lg text-muted-foreground">
               Хардкорный Stalker RP проект на DayZ. Аномалии, артефакты, фракции и борьба за выживание.
