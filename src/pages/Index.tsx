@@ -212,7 +212,7 @@ export default function Index() {
               </Button>
             </div>
             <div className="mt-12 flex flex-wrap gap-8">
-              {[['247', 'Сталкеров онлайн'], ['64', 'Слотов на сервере'], ['12', 'Фракций в Зоне']].map(([n, l]) => (
+              {[['247', 'Сталкеров онлайн'], ['64', 'Слотов на сервере'], ['8', 'Фракций в Зоне']].map(([n, l]) => (
                 <div key={l}>
                   <div className="font-display text-4xl font-bold text-primary">{n}</div>
                   <div className="font-body text-xs uppercase tracking-wider text-muted-foreground">{l}</div>
