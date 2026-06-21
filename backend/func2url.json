@@ -1,4 +1,5 @@
 {
+  "server-status": "https://functions.poehali.dev/8866a1ce-5a85-4894-ba57-fd00e3cd2636",
   "steam-callback": "https://functions.poehali.dev/edbd3d47-b8f0-4f79-beaf-4ba48d8f3bf6",
   "auth-me": "https://functions.poehali.dev/085b5268-60a1-42ec-92f7-19cb411dcd7d",
   "steam-login": "https://functions.poehali.dev/c009e5f0-9192-4bd4-b1f1-079159a97c98",

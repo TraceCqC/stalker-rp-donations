@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -122,6 +122,23 @@ export default function Index() {
   const [active, setActive] = useState('lore');
   const [selectedFaction, setSelectedFaction] = useState<string | null>(null);
   const { user, loading: authLoading, loginWithSteam } = useAuth();
+  const [serverPlayers, setServerPlayers] = useState<number | null>(null);
+  const [serverOnline, setServerOnline] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const fetchStatus = () => {
+      fetch('https://functions.poehali.dev/8866a1ce-5a85-4894-ba57-fd00e3cd2636')
+        .then(r => r.json())
+        .then(data => {
+          setServerOnline(data.online);
+          setServerPlayers(data.online ? data.players : 0);
+        })
+        .catch(() => setServerOnline(false));
+    };
+    fetchStatus();
+    const interval = setInterval(fetchStatus, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   const scrollTo = (id: string) => {
     setActive(id);
@@ -192,8 +209,10 @@ export default function Index() {
         <div className="container relative z-10 px-4 py-20">
           <div className="max-w-3xl animate-fade-in">
             <div className="mb-6 inline-flex items-center gap-2 border border-primary/40 bg-background/60 px-3 py-1.5">
-              <span className="h-2 w-2 animate-flicker rounded-full bg-primary" />
-              <span className="font-display text-xs uppercase tracking-[0.3em] text-primary">Сервер онлайн · DayZ</span>
+              <span className={`h-2 w-2 rounded-full ${serverOnline === false ? 'bg-red-500' : 'bg-primary animate-flicker'}`} />
+              <span className={`font-display text-xs uppercase tracking-[0.3em] ${serverOnline === false ? 'text-red-400' : 'text-primary'}`}>
+                {serverOnline === false ? 'Сервер офлайн · DayZ' : 'Сервер онлайн · DayZ'}
+              </span>
             </div>
             <h1 className="font-display text-6xl font-bold uppercase leading-[0.9] tracking-tight md:text-8xl">
               Добро пожаловать <br />
@@ -212,7 +231,13 @@ export default function Index() {
               </Button>
             </div>
             <div className="mt-12 flex flex-wrap gap-8">
-              {[['247', 'Сталкеров онлайн'], ['64', 'Слотов на сервере'], ['8', 'Фракций в Зоне']].map(([n, l]) => (
+              <div>
+                <div className="font-display text-4xl font-bold text-primary">
+                  {serverPlayers === null ? '—' : serverPlayers}
+                </div>
+                <div className="font-body text-xs uppercase tracking-wider text-muted-foreground">Сталкеров онлайн</div>
+              </div>
+              {[['64', 'Слотов на сервере'], ['8', 'Фракций в Зоне']].map(([n, l]) => (
                 <div key={l}>
                   <div className="font-display text-4xl font-bold text-primary">{n}</div>
                   <div className="font-body text-xs uppercase tracking-wider text-muted-foreground">{l}</div>

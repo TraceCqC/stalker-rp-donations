@@ -1,0 +1,12 @@
+{
+  "tests": [
+    {
+      "name": "Returns server status",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {"online": false},
+      "bodyMatcher": "partial"
+    }
+  ]
+}
