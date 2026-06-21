@@ -375,10 +375,10 @@ export default function Index() {
       <section id="lore" className="relative border-t border-border py-24">
         <div className="container px-4">
           <SectionTitle icon="BookOpen" sub="Хроники зоны" title="Лор" />
-          <div className="mt-12 max-w-3xl">
-            <div className="grain rust-border bg-card p-8">
-              <p className="font-display text-xs uppercase tracking-[0.3em] text-primary mb-6">Фрагмент из лора сервера</p>
-              <p className="font-body text-muted-foreground whitespace-pre-line leading-relaxed text-base">
+          <div className="mt-12 max-w-2xl">
+            <div className="paper p-10 rotate-[-0.5deg]">
+              <p className="text-xs uppercase tracking-[0.25em] opacity-50 mb-5" style={{fontFamily:'Caveat,cursive'}}>— Фрагмент из лора сервера —</p>
+              <p className="whitespace-pre-line leading-loose text-xl" style={{fontFamily:'Caveat,cursive'}}>
                 {LORE_CHAPTERS.find(ch => ch.title === 'IX. ФИНАЛ ЛОРА')?.content}
               </p>
             </div>
