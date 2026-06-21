@@ -9,7 +9,7 @@ const HERO = 'https://cdn.poehali.dev/projects/bb154877-b93f-4589-958f-2fb7ea6b5
 const SIGN = 'https://cdn.poehali.dev/projects/bb154877-b93f-4589-958f-2fb7ea6b58fe/files/9d913198-f058-4331-9e65-3927b06a9375.jpg';
 
 
-const SERVER_IP = '185.220.101.42:2302';
+const SERVER_IP = '94.127.218.85:2302';
 
 const NAV = [
   { id: 'lore', label: 'Лор', icon: 'BookOpen' },
