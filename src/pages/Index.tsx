@@ -445,11 +445,14 @@ export default function Index() {
             </div>
             <p className="font-body text-sm text-muted-foreground">© 2026 Зона. Все пожертвования добровольны.</p>
             <div className="flex gap-3">
-              {['Send', 'MessageCircle', 'Youtube'].map((ic) => (
+              {['Send', 'Youtube'].map((ic) => (
                 <button key={ic} className="flex h-10 w-10 items-center justify-center border border-border text-muted-foreground transition-colors hover:border-primary hover:text-primary">
                   <Icon name={ic} size={18} />
                 </button>
               ))}
+              <a href="https://discord.gg/Szbrkk8nX6" target="_blank" rel="noopener noreferrer" className="flex h-10 w-10 items-center justify-center border border-border text-muted-foreground transition-colors hover:border-primary hover:text-primary">
+                <Icon name="MessageCircle" size={18} fallback="MessageCircle" />
+              </a>
             </div>
           </div>
         </div>
