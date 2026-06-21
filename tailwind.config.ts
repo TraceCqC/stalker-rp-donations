@@ -88,11 +88,11 @@ export default {
 				},
 				'flicker': {
 					'0%, 100%': { opacity: '1' },
-					'41%': { opacity: '1' },
-					'42%': { opacity: '0.4' },
-					'43%': { opacity: '1' },
-					'88%': { opacity: '1' },
-					'89%': { opacity: '0.6' },
+					'45%': { opacity: '1' },
+					'50%': { opacity: '0.6' },
+					'55%': { opacity: '1' },
+					'80%': { opacity: '1' },
+					'85%': { opacity: '0.75' },
 					'90%': { opacity: '1' }
 				},
 				'radiate': {
@@ -104,7 +104,7 @@ export default {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'fade-in': 'fade-in 0.6s ease-out forwards',
-				'flicker': 'flicker 4s linear infinite',
+				'flicker': 'flicker 8s ease-in-out infinite',
 				'radiate': 'radiate 3s ease-in-out infinite'
 			}
 		}
