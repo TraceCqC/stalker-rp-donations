@@ -161,7 +161,7 @@ export default function Index() {
               <Icon name="Radiation" size={22} />
             </div>
             <span className="font-display text-xl font-bold tracking-widest uppercase">
-              S.T.A.L.K.E.R. <span className="text-primary">RP</span>
+              Night <span className="text-primary">Zone</span>
             </span>
           </div>
           <nav className="hidden items-center gap-1 md:flex">
