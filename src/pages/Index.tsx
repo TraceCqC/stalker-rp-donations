@@ -153,30 +153,30 @@ const NEWS = [
   { ver: 'Хотфикс 1.7.1', date: '02.06.2026', title: 'Исправление дюпа транспорта', tag: 'Фикс', text: 'Закрыт эксплойт с дублированием машин. Откатаны нечестно полученные предметы. Стабилизирован спавн мутантов.' },
 ];
 
-const SHOP: Record<string, { name: string; price: string; icon: string; desc: string }[]> = {
+const SHOP: Record<string, { name: string; price: number; icon: string; desc: string }[]> = {
   ammo: [
-    { name: 'Цинк 5.45×39 (1080)', price: '149 ₽', icon: 'Package', desc: 'Полный цинк патронов для АК-74' },
-    { name: 'Дробь 12 калибр (50)', price: '79 ₽', icon: 'Package', desc: 'Картечь для дробовиков' },
-    { name: 'Патроны 7.62×54 (200)', price: '189 ₽', icon: 'Package', desc: 'Для снайперских винтовок' },
-    { name: 'Аптечка военная', price: '99 ₽', icon: 'Cross', desc: 'Полное восстановление HP' },
+    { name: 'Цинк 5.45×39 (1080)', price: 149, icon: 'Package', desc: 'Полный цинк патронов для АК-74' },
+    { name: 'Дробь 12 калибр (50)', price: 79, icon: 'Package', desc: 'Картечь для дробовиков' },
+    { name: 'Патроны 7.62×54 (200)', price: 189, icon: 'Package', desc: 'Для снайперских винтовок' },
+    { name: 'Аптечка военная', price: 99, icon: 'Cross', desc: 'Полное восстановление HP' },
   ],
   weapon: [
-    { name: 'АК-74М «Зона»', price: '349 ₽', icon: 'Crosshair', desc: 'Кастомная сборка с обвесом' },
-    { name: 'СВД «Сталкер»', price: '499 ₽', icon: 'Crosshair', desc: 'Снайперская винтовка с прицелом' },
-    { name: 'Сайга-12', price: '279 ₽', icon: 'Crosshair', desc: 'Помповый дробовик' },
-    { name: 'Глок-17 + кобура', price: '149 ₽', icon: 'Crosshair', desc: 'Надёжный пистолет выживальщика' },
+    { name: 'АК-74М «Зона»', price: 349, icon: 'Crosshair', desc: 'Кастомная сборка с обвесом' },
+    { name: 'СВД «Сталкер»', price: 499, icon: 'Crosshair', desc: 'Снайперская винтовка с прицелом' },
+    { name: 'Сайга-12', price: 279, icon: 'Crosshair', desc: 'Помповый дробовик' },
+    { name: 'Глок-17 + кобура', price: 149, icon: 'Crosshair', desc: 'Надёжный пистолет выживальщика' },
   ],
   transport: [
-    { name: 'УАЗ «Буханка»', price: '599 ₽', icon: 'Truck', desc: 'Вместительный внедорожник' },
-    { name: 'Нива 4×4', price: '449 ₽', icon: 'Car', desc: 'Проходимость по любой Зоне' },
-    { name: 'Квадроцикл', price: '299 ₽', icon: 'Bike', desc: 'Быстрая разведка территории' },
-    { name: 'Грузовик Урал', price: '899 ₽', icon: 'Truck', desc: 'Перевозка большого лута' },
+    { name: 'УАЗ «Буханка»', price: 599, icon: 'Truck', desc: 'Вместительный внедорожник' },
+    { name: 'Нива 4×4', price: 449, icon: 'Car', desc: 'Проходимость по любой Зоне' },
+    { name: 'Квадроцикл', price: 299, icon: 'Bike', desc: 'Быстрая разведка территории' },
+    { name: 'Грузовик Урал', price: 899, icon: 'Truck', desc: 'Перевозка большого лута' },
   ],
   furniture: [
-    { name: 'Верстак оружейника', price: '249 ₽', icon: 'Wrench', desc: 'Крафт и ремонт стволов' },
-    { name: 'Сейф-шкаф', price: '199 ₽', icon: 'Lock', desc: 'Защищённое хранилище лута' },
-    { name: 'Палаточный лагерь', price: '349 ₽', icon: 'Tent', desc: 'Мобильная база сталкера' },
-    { name: 'Радиостанция', price: '159 ₽', icon: 'RadioTower', desc: 'Связь на дальние дистанции' },
+    { name: 'Верстак оружейника', price: 249, icon: 'Wrench', desc: 'Крафт и ремонт стволов' },
+    { name: 'Сейф-шкаф', price: 199, icon: 'Lock', desc: 'Защищённое хранилище лута' },
+    { name: 'Палаточный лагерь', price: 349, icon: 'Tent', desc: 'Мобильная база сталкера' },
+    { name: 'Радиостанция', price: 159, icon: 'RadioTower', desc: 'Связь на дальние дистанции' },
   ],
 };
 
@@ -196,6 +196,30 @@ export default function Index() {
   const [serverPlayers, setServerPlayers] = useState<number | null>(null);
   const [serverOnline, setServerOnline] = useState<boolean | null>(null);
   const [cabinetOpen, setCabinetOpen] = useState(false);
+  const [cart, setCart] = useState<{ name: string; price: number; icon: string; qty: number }[]>([]);
+  const [cartOpen, setCartOpen] = useState(false);
+
+  const cartTotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const cartCount = cart.reduce((s, i) => s + i.qty, 0);
+
+  const addToCart = (item: { name: string; price: number; icon: string }) => {
+    setCart(prev => {
+      const idx = prev.findIndex(i => i.name === item.name);
+      if (idx >= 0) {
+        const next = [...prev];
+        next[idx] = { ...next[idx], qty: next[idx].qty + 1 };
+        return next;
+      }
+      return [...prev, { ...item, qty: 1 }];
+    });
+    setCartOpen(true);
+  };
+
+  const changeQty = (name: string, delta: number) => {
+    setCart(prev =>
+      prev.map(i => i.name === name ? { ...i, qty: i.qty + delta } : i).filter(i => i.qty > 0)
+    );
+  };
 
   useEffect(() => {
     const hash = window.location.hash;
@@ -270,6 +294,13 @@ export default function Index() {
             ))}
           </nav>
           <div className="flex items-center gap-2">
+            {cartCount > 0 && (
+              <button onClick={() => setCartOpen(true)} className="relative flex items-center gap-2 border border-primary/60 bg-card px-3 py-1.5 transition-colors hover:border-primary">
+                <Icon name="ShoppingCart" size={16} className="text-primary" />
+                <span className="font-display text-sm font-bold text-primary">{cartTotal} ₽</span>
+                <span className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center bg-primary text-[10px] font-bold text-primary-foreground">{cartCount}</span>
+              </button>
+            )}
             {!authLoading && (
               user ? (
                 <button onClick={() => setCabinetOpen(true)} className="flex items-center gap-2 border border-border bg-card px-3 py-1.5 transition-colors hover:border-primary">
@@ -513,10 +544,10 @@ export default function Index() {
                       <h3 className="font-display text-lg font-semibold uppercase leading-tight tracking-wide">{item.name}</h3>
                       <p className="mt-2 flex-1 font-body text-sm text-muted-foreground">{item.desc}</p>
                       <div className="mt-5 flex items-center justify-between">
-                        <span className="font-display text-2xl font-bold text-primary">{item.price}</span>
+                        <span className="font-display text-2xl font-bold text-primary">{item.price} ₽</span>
                         <Button
                           size="sm"
-                          onClick={() => toast({ title: 'Добавлено в корзину', description: item.name })}
+                          onClick={() => addToCart(item)}
                           className="font-display uppercase"
                         >
                           <Icon name="Plus" size={16} />
@@ -555,6 +586,73 @@ export default function Index() {
           </div>
         </div>
       </footer>
+
+      {/* CART MODAL */}
+      {cartOpen && (
+        <div className="fixed inset-0 z-[100] flex items-start justify-end bg-background/60 backdrop-blur-sm" onClick={() => setCartOpen(false)}>
+          <div className="grain rust-border h-full w-full max-w-sm bg-card animate-fade-in flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-border p-5">
+              <h2 className="font-display text-lg font-bold uppercase tracking-widest flex items-center gap-2">
+                <Icon name="ShoppingCart" size={18} className="text-primary" /> Корзина
+              </h2>
+              <button onClick={() => setCartOpen(false)} className="text-muted-foreground hover:text-foreground">
+                <Icon name="X" size={20} />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-5">
+              {cart.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-20 text-center">
+                  <Icon name="ShoppingCart" size={48} className="text-muted-foreground/20" />
+                  <p className="mt-4 font-display text-sm uppercase tracking-wide text-muted-foreground">Корзина пуста</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {cart.map(item => (
+                    <div key={item.name} className="flex items-center gap-3 border border-border bg-background/50 p-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center bg-primary/10 text-primary">
+                        <Icon name={item.icon} size={20} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-display text-sm uppercase leading-tight truncate">{item.name}</p>
+                        <p className="font-display text-xs text-primary">{item.price} ₽ × {item.qty} = {item.price * item.qty} ₽</p>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button onClick={() => changeQty(item.name, -1)} className="flex h-7 w-7 items-center justify-center border border-border text-muted-foreground hover:border-primary hover:text-foreground">
+                          <Icon name="Minus" size={12} />
+                        </button>
+                        <span className="font-display w-5 text-center text-sm">{item.qty}</span>
+                        <button onClick={() => changeQty(item.name, 1)} className="flex h-7 w-7 items-center justify-center border border-border text-muted-foreground hover:border-primary hover:text-foreground">
+                          <Icon name="Plus" size={12} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {cart.length > 0 && (
+              <div className="border-t border-border p-5 space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="font-display text-sm uppercase tracking-wider text-muted-foreground">Итого</span>
+                  <span className="font-display text-2xl font-bold text-primary">{cartTotal} ₽</span>
+                </div>
+                <Button className="w-full font-display uppercase tracking-widest" onClick={() => {
+                  if (!user) { setCabinetOpen(true); setCartOpen(false); }
+                  else toast({ title: 'Оформление заказа', description: 'Функция оплаты скоро появится' });
+                }}>
+                  <Icon name="Zap" size={16} className="mr-2" />
+                  {user ? 'Оформить заказ' : 'Войти и оформить'}
+                </Button>
+                <button onClick={() => setCart([])} className="w-full font-display text-xs uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors">
+                  Очистить корзину
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* CABINET MODAL */}
       {cabinetOpen && (
