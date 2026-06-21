@@ -14,7 +14,7 @@ def handler(event: dict, context) -> dict:
         return {'statusCode': 200, 'headers': CORS, 'body': ''}
 
     site_url = os.environ.get('SITE_URL', 'https://nightzone.poehali.dev')
-    callback_url = f"{site_url}/api/steam-callback"
+    callback_url = 'https://functions.poehali.dev/edbd3d47-b8f0-4f79-beaf-4ba48d8f3bf6'
 
     params = (
         "openid.ns=http://specs.openid.net/auth/2.0"
