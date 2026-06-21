@@ -375,27 +375,14 @@ export default function Index() {
       <section id="lore" className="relative border-t border-border py-24">
         <div className="container px-4">
           <SectionTitle icon="BookOpen" sub="Хроники зоны" title="Лор" />
-          <div className="mt-12 max-w-3xl space-y-2">
-            {LORE_CHAPTERS.filter(ch => ch.title === 'IX. ФИНАЛ ЛОРА').map((ch) => {
-              const isOpen = openLore === ch.title;
-              return (
-                <div key={ch.title} className="flex flex-col">
-                  <button
-                    onClick={() => setOpenLore(isOpen ? null : ch.title)}
-                    className={`grain rust-border flex items-center justify-between gap-4 bg-card p-5 text-left transition-all ${isOpen ? 'border-primary/70' : 'hover:border-primary/40'}`}
-                  >
-                    <span className={`font-display text-sm uppercase tracking-widest ${isOpen ? 'text-primary' : 'text-foreground'}`}>{ch.title}</span>
-                    <Icon name="ChevronDown" size={18} className={`shrink-0 text-muted-foreground transition-transform duration-300 ${isOpen ? 'rotate-180 text-primary' : ''}`} />
-                  </button>
-                  {isOpen && (
-                    <div className="grain border border-t-0 border-primary/40 bg-card/80 p-6 animate-fade-in">
-                      <p className="font-body text-muted-foreground whitespace-pre-line leading-relaxed">{ch.content}</p>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-            <p className="pt-4 font-body text-sm text-muted-foreground">
+          <div className="mt-12 max-w-3xl">
+            <div className="grain rust-border bg-card p-8">
+              <p className="font-display text-xs uppercase tracking-[0.3em] text-primary mb-6">Фрагмент из лора сервера</p>
+              <p className="font-body text-muted-foreground whitespace-pre-line leading-relaxed text-base">
+                {LORE_CHAPTERS.find(ch => ch.title === 'IX. ФИНАЛ ЛОРА')?.content}
+              </p>
+            </div>
+            <p className="mt-6 font-body text-sm text-muted-foreground">
               С полным лором вы можете ознакомиться{' '}
               <a
                 href="https://docs.google.com/document/d/1o3YvJt79dlX568GZv4aCi1p0nlbO8tBRgy3G1And5zk/edit?tab=t.0"
