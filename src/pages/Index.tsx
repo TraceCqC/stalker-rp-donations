@@ -12,6 +12,7 @@ const SIGN = 'https://cdn.poehali.dev/projects/bb154877-b93f-4589-958f-2fb7ea6b5
 const SERVER_IP = '185.220.101.42:2302';
 
 const NAV = [
+  { id: 'lore', label: 'Лор', icon: 'BookOpen' },
   { id: 'factions', label: 'Фракции', icon: 'Users' },
   { id: 'connect', label: 'Подключение', icon: 'Wifi' },
   { id: 'news', label: 'Новости', icon: 'Radio' },
