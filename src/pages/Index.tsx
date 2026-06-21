@@ -324,7 +324,7 @@ export default function Index() {
         <div className="container px-4">
           <SectionTitle icon="BookOpen" sub="Хроники зоны" title="Лор" />
           <div className="mt-12 max-w-3xl space-y-2">
-            {LORE_CHAPTERS.map((ch) => {
+            {LORE_CHAPTERS.filter(ch => ch.title === 'IX. ФИНАЛ ЛОРА').map((ch) => {
               const isOpen = openLore === ch.title;
               return (
                 <div key={ch.title} className="flex flex-col">
@@ -343,6 +343,17 @@ export default function Index() {
                 </div>
               );
             })}
+            <p className="pt-4 font-body text-sm text-muted-foreground">
+              С полным лором вы можете ознакомиться{' '}
+              <a
+                href="https://docs.google.com/document/d/1o3YvJt79dlX568GZv4aCi1p0nlbO8tBRgy3G1And5zk/edit?tab=t.0"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary underline underline-offset-4 hover:text-primary/80 transition-colors"
+              >
+                тут
+              </a>
+            </p>
           </div>
         </div>
       </section>
