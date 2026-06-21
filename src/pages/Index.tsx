@@ -198,7 +198,7 @@ export default function Index() {
   const [cabinetOpen, setCabinetOpen] = useState(false);
 
   useEffect(() => {
-    if (window.location.search.includes('cabinet=1')) {
+    if (window.location.hash === '#cabinet' || window.location.search.includes('cabinet=1')) {
       setCabinetOpen(true);
       window.history.replaceState({}, '', '/');
     }
