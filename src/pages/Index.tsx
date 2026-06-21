@@ -7,7 +7,7 @@ import { useAuth } from '@/hooks/use-auth';
 
 const HERO = 'https://cdn.poehali.dev/projects/bb154877-b93f-4589-958f-2fb7ea6b58fe/files/8f9ca15d-a21a-4ffe-994d-3d6f8ad6d774.jpg';
 const SIGN = 'https://cdn.poehali.dev/projects/bb154877-b93f-4589-958f-2fb7ea6b58fe/files/9d913198-f058-4331-9e65-3927b06a9375.jpg';
-const NZ_BG = 'https://cdn.poehali.dev/projects/bb154877-b93f-4589-958f-2fb7ea6b58fe/bucket/e41f910e-cde4-42db-963e-13290bad8a3e.png';
+
 
 const SERVER_IP = '185.220.101.42:2302';
 
@@ -283,11 +283,7 @@ export default function Index() {
 
       {/* FACTIONS */}
       <section id="factions" className="relative border-t border-border py-24">
-        <div className="absolute inset-0 z-0 overflow-hidden">
-          <img src={NZ_BG} alt="" className="h-full w-full object-cover opacity-[0.06]" />
-          <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-transparent to-background/60" />
-        </div>
-        <div className="container relative z-10 px-4">
+        <div className="container px-4">
           <SectionTitle icon="Users" sub="Группировки Зоны" title="Фракции" />
           <p className="mt-4 max-w-2xl font-body text-muted-foreground">
             Выбери фракцию — узнай её цели, базу и боевой стиль.
@@ -391,11 +387,7 @@ export default function Index() {
 
       {/* SHOP */}
       <section id="shop" className="relative border-t border-border py-24">
-        <div className="absolute inset-0 z-0 overflow-hidden">
-          <img src={NZ_BG} alt="" className="h-full w-full object-cover opacity-[0.05]" style={{objectPosition: 'center 30%'}} />
-          <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/40 to-background/80" />
-        </div>
-        <div className="container relative z-10 px-4">
+        <div className="container px-4">
           <SectionTitle icon="ShoppingCart" sub="За пожертвования" title="Магазин Зоны" />
           <p className="mt-4 max-w-2xl font-body text-muted-foreground">
             Все покупки — добровольные пожертвования на развитие проекта. Поддержи сервер и получи снаряжение для выживания.
