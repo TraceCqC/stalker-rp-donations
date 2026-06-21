@@ -192,9 +192,17 @@ export default function Index() {
   const [active, setActive] = useState('lore');
   const [selectedFaction, setSelectedFaction] = useState<string | null>(null);
   const [openLore, setOpenLore] = useState<string | null>(null);
-  const { user, loading: authLoading, loginWithSteam } = useAuth();
+  const { user, purchases, loading: authLoading, loginWithSteam, logout } = useAuth();
   const [serverPlayers, setServerPlayers] = useState<number | null>(null);
   const [serverOnline, setServerOnline] = useState<boolean | null>(null);
+  const [cabinetOpen, setCabinetOpen] = useState(false);
+
+  useEffect(() => {
+    if (window.location.search.includes('cabinet=1')) {
+      setCabinetOpen(true);
+      window.history.replaceState({}, '', '/');
+    }
+  }, []);
 
   useEffect(() => {
     const fetchStatus = () => {
@@ -251,13 +259,13 @@ export default function Index() {
           <div className="flex items-center gap-2">
             {!authLoading && (
               user ? (
-                <a href="/cabinet" className="flex items-center gap-2 border border-border bg-card px-3 py-1.5 transition-colors hover:border-primary">
+                <button onClick={() => setCabinetOpen(true)} className="flex items-center gap-2 border border-border bg-card px-3 py-1.5 transition-colors hover:border-primary">
                   {user.avatar_url
                     ? <img src={user.avatar_url} alt="" className="h-6 w-6 object-cover" />
                     : <Icon name="User" size={16} className="text-primary" />
                   }
                   <span className="font-display text-sm uppercase tracking-wider">{user.username}</span>
-                </a>
+                </button>
               ) : (
                 <Button variant="outline" size="sm" onClick={loginWithSteam} className="border-primary/40 font-display uppercase tracking-wider">
                   <Icon name="LogIn" size={16} className="mr-1" /> Steam
@@ -534,6 +542,80 @@ export default function Index() {
           </div>
         </div>
       </footer>
+
+      {/* CABINET MODAL */}
+      {cabinetOpen && (
+        <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-background/90 backdrop-blur-sm p-4 pt-20">
+          <div className="grain rust-border w-full max-w-2xl bg-card animate-fade-in">
+            <div className="flex items-center justify-between border-b border-border p-6">
+              <h2 className="font-display text-xl font-bold uppercase tracking-widest">Личный кабинет</h2>
+              <button onClick={() => setCabinetOpen(false)} className="text-muted-foreground transition-colors hover:text-foreground">
+                <Icon name="X" size={22} />
+              </button>
+            </div>
+            {user ? (
+              <div className="p-6">
+                <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+                  <div className="relative h-16 w-16 shrink-0">
+                    {user.avatar_url
+                      ? <img src={user.avatar_url} alt={user.username} className="h-full w-full object-cover" />
+                      : <div className="flex h-full w-full items-center justify-center bg-primary/10 text-primary"><Icon name="User" size={30} /></div>
+                    }
+                    <div className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center bg-primary">
+                      <Icon name="Radiation" size={11} className="text-primary-foreground" />
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-display text-xs uppercase tracking-[0.3em] text-primary">Сталкер Зоны</p>
+                    <h3 className="font-display text-2xl font-bold uppercase">{user.username}</h3>
+                    <p className="mt-1 font-body text-xs text-muted-foreground">Steam ID: {user.steam_id}</p>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={logout} className="border-border font-display uppercase shrink-0">
+                    <Icon name="LogOut" size={15} className="mr-1" /> Выйти
+                  </Button>
+                </div>
+
+                <div className="mt-6">
+                  <h4 className="font-display text-sm uppercase tracking-widest text-muted-foreground mb-3">История покупок</h4>
+                  {purchases.length === 0 ? (
+                    <div className="py-10 text-center">
+                      <Icon name="Package" size={40} className="mx-auto text-muted-foreground/30" />
+                      <p className="mt-3 font-display text-sm uppercase tracking-wide text-muted-foreground">Покупок пока нет</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2 max-h-72 overflow-y-auto">
+                      {purchases.map((p) => {
+                        const STATUS: Record<string, { label: string; color: string }> = {
+                          pending: { label: 'Ожидает', color: 'text-yellow-400' },
+                          paid: { label: 'Оплачено', color: 'text-green-400' },
+                          delivered: { label: 'Выдано', color: 'text-primary' },
+                          cancelled: { label: 'Отменено', color: 'text-red-400' },
+                        };
+                        const st = STATUS[p.status] ?? { label: p.status, color: 'text-muted-foreground' };
+                        return (
+                          <div key={p.id} className="flex items-center justify-between border border-border bg-background/50 px-4 py-3">
+                            <span className="font-display text-sm uppercase">{p.item_name}</span>
+                            <div className="flex items-center gap-4">
+                              <span className={`font-display text-xs uppercase ${st.color}`}>{st.label}</span>
+                              <span className="font-display font-bold text-primary">{p.price.toFixed(0)} ₽</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="p-10 text-center">
+                <Button onClick={loginWithSteam} size="lg" className="font-display uppercase tracking-widest animate-radiate">
+                  <Icon name="LogIn" size={18} className="mr-2" /> Войти через Steam
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

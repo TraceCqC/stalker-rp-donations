@@ -122,7 +122,7 @@ def handler(event: dict, context) -> dict:
         'statusCode': 302,
         'headers': {
             **CORS,
-            'Location': f'{site_url}/cabinet',
+            'Location': f'{site_url}/?cabinet=1',
             'X-Set-Cookie': cookie,
         },
         'body': '',
