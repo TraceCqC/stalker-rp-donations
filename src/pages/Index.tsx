@@ -198,7 +198,20 @@ export default function Index() {
   const [cabinetOpen, setCabinetOpen] = useState(false);
 
   useEffect(() => {
-    if (window.location.hash === '#cabinet' || window.location.search.includes('cabinet=1')) {
+    const hash = window.location.hash;
+    if (hash.startsWith('#cabinet')) {
+      const query = hash.replace('#cabinet?', '').replace('#cabinet', '');
+      const sid = new URLSearchParams(query).get('sid');
+      if (sid) {
+        import('@/hooks/use-auth').then(({ setSessionId }) => {
+          setSessionId(sid);
+          window.location.reload();
+        });
+        return;
+      }
+      setCabinetOpen(true);
+      window.history.replaceState({}, '', '/');
+    } else if (window.location.search.includes('cabinet=1')) {
       setCabinetOpen(true);
       window.history.replaceState({}, '', '/');
     }

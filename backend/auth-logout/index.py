@@ -7,7 +7,7 @@ import psycopg2
 CORS = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Cookie',
+    'Access-Control-Allow-Headers': 'Content-Type, X-Session-Id',
     'Content-Type': 'application/json',
 }
 
@@ -18,21 +18,12 @@ def get_db():
     return psycopg2.connect(os.environ['DATABASE_URL'])
 
 
-def parse_session(cookie_header: str) -> str | None:
-    for part in cookie_header.split(';'):
-        part = part.strip()
-        if part.startswith('session_id='):
-            return part[len('session_id='):]
-    return None
-
-
 def handler(event: dict, context) -> dict:
     if event.get('httpMethod') == 'OPTIONS':
         return {'statusCode': 200, 'headers': CORS, 'body': ''}
 
     headers = event.get('headers') or {}
-    cookie_header = headers.get('X-Cookie', '') or headers.get('cookie', '')
-    session_id = parse_session(cookie_header)
+    session_id = headers.get('X-Session-Id', '').strip() or None
 
     if session_id:
         conn = get_db()
@@ -44,6 +35,6 @@ def handler(event: dict, context) -> dict:
 
     return {
         'statusCode': 200,
-        'headers': {**CORS, 'X-Set-Cookie': 'session_id=; Path=/; Max-Age=0'},
+        'headers': CORS,
         'body': json.dumps({'ok': True}),
     }

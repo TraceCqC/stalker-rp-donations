@@ -116,14 +116,11 @@ def handler(event: dict, context) -> dict:
     cur.close()
     conn.close()
 
-    cookie = f"session_id={session_id}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000"
-
     return {
         'statusCode': 302,
         'headers': {
             **CORS,
-            'Location': f'{site_url}/#cabinet',
-            'X-Set-Cookie': cookie,
+            'Location': f'{site_url}/#cabinet?sid={session_id}',
         },
         'body': '',
     }

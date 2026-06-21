@@ -4,6 +4,8 @@ const AUTH_ME_URL = 'https://functions.poehali.dev/085b5268-60a1-42ec-92f7-19cb4
 const LOGOUT_URL = 'https://functions.poehali.dev/3f106363-957e-4cd7-9dee-5468f71d6997';
 const STEAM_LOGIN_URL = 'https://functions.poehali.dev/c009e5f0-9192-4bd4-b1f1-079159a97c98';
 
+const SESSION_KEY = 'nz_session_id';
+
 export interface Purchase {
   id: number;
   category: string;
@@ -21,18 +23,39 @@ export interface User {
   member_since: string;
 }
 
+export function getSessionId(): string | null {
+  return localStorage.getItem(SESSION_KEY);
+}
+
+export function setSessionId(id: string) {
+  localStorage.setItem(SESSION_KEY, id);
+}
+
+export function clearSessionId() {
+  localStorage.removeItem(SESSION_KEY);
+}
+
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(AUTH_ME_URL, { credentials: 'include' })
+    const sid = getSessionId();
+    if (!sid) {
+      setLoading(false);
+      return;
+    }
+    fetch(AUTH_ME_URL, {
+      headers: { 'X-Session-Id': sid },
+    })
       .then((r) => r.json())
       .then((data) => {
         if (data.user) {
           setUser(data.user);
           setPurchases(data.purchases || []);
+        } else {
+          clearSessionId();
         }
       })
       .catch(() => {})
@@ -44,7 +67,14 @@ export function useAuth() {
   };
 
   const logout = async () => {
-    await fetch(LOGOUT_URL, { method: 'POST', credentials: 'include' });
+    const sid = getSessionId();
+    if (sid) {
+      await fetch(LOGOUT_URL, {
+        method: 'POST',
+        headers: { 'X-Session-Id': sid },
+      });
+    }
+    clearSessionId();
     setUser(null);
     setPurchases([]);
   };
