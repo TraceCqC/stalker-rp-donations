@@ -12,11 +12,79 @@ const SIGN = 'https://cdn.poehali.dev/projects/bb154877-b93f-4589-958f-2fb7ea6b5
 const SERVER_IP = '185.220.101.42:2302';
 
 const NAV = [
-  { id: 'lore', label: 'Лор', icon: 'BookOpen' },
   { id: 'factions', label: 'Фракции', icon: 'Users' },
   { id: 'connect', label: 'Подключение', icon: 'Wifi' },
   { id: 'news', label: 'Новости', icon: 'Radio' },
   { id: 'shop', label: 'Магазин', icon: 'ShoppingCart' },
+];
+
+const LORE_CHAPTERS = [
+  {
+    title: 'СЕРДЦЕ ЗОНЫ',
+    content: `В центре Зоны находится нестабильная аномальная структура — Ядро.
+
+Это не объект.
+Это сознание.
+
+Предположительно оно способно:
+• создавать выбросы
+• менять реальность
+• подчинять волю
+
+С ним связана каждая аномалия.
+Каждый мутант.
+Каждый шепот в ночи.`,
+  },
+  {
+    title: 'VI. 2019 ГОД — ВНЕОЧЕРЕДНОЙ ВЫБРОС',
+    content: `К этому времени Зона расширилась на 37%.
+
+Происходят:
+• неконтролируемые выбросы
+• новые типы мутантов
+• исчезновения целых отрядов
+• радиационные дожди
+
+Связь с внешним миром нестабильна.
+Военные блокпосты деградировали. Коррупция процветает.
+
+Теперь Зона проникает в людей так же, как люди в Зону.`,
+  },
+  {
+    title: 'VII. МРАЧНАЯ ПРАВДА',
+    content: `Многие начинают понимать: авария — не случайность.
+Это эксперимент, который продолжается.
+
+Существуют данные, что проект никогда не закрывался.
+Кто-то управляет процессами из глубины.
+
+А сталкеры — лишь подопытные.`,
+  },
+  {
+    title: 'VIII. КОДЕКС СТАЛКЕРА',
+    content: `Негласные правила:
+• Не стреляй без причины
+• Делись водой
+• Не трогай метку мёртвых
+• Уважай Периметр
+• Не верь голосам`,
+  },
+  {
+    title: 'IX. ФИНАЛ ЛОРА',
+    content: `К 2019 году Зона перестаёт быть местом.
+Она становится состоянием.
+Ты больше не помнишь, кем был.
+Ты знаешь только одно — идти дальше.
+
+Зона скрипит под ногами.
+Небо мертво.
+Ветер шепчет имена потерянных.
+И где-то в самой глубине
+бьётся Сердце,
+ждущее новых жертв.
+Зона не убивает быстро.
+Она стирает.`,
+  },
 ];
 
 const FACTIONS = [
@@ -122,6 +190,7 @@ export default function Index() {
   const { toast } = useToast();
   const [active, setActive] = useState('lore');
   const [selectedFaction, setSelectedFaction] = useState<string | null>(null);
+  const [openLore, setOpenLore] = useState<string | null>(null);
   const { user, loading: authLoading, loginWithSteam } = useAuth();
   const [serverPlayers, setServerPlayers] = useState<number | null>(null);
   const [serverOnline, setServerOnline] = useState<boolean | null>(null);
@@ -253,30 +322,26 @@ export default function Index() {
       <section id="lore" className="relative border-t border-border py-24">
         <div className="container px-4">
           <SectionTitle icon="BookOpen" sub="Хроники зоны" title="Лор" />
-          <div className="mt-12 grid gap-8 lg:grid-cols-3">
-            {[
-              { icon: 'Atom', title: 'Второй взрыв', text: 'В 2006 году над ЧАЭС произошёл повторный выброс. Привычный мир рухнул — родилась Зона с её аномалиями и мутантами.' },
-              { icon: 'Users', title: 'Фракции', text: 'Долг, Свобода, ОКСОП, Монолит, Грех и Бандиты. Каждая группировка борется за контроль над артефактами и территорией.', action: 'factions' },
-              { icon: 'Sparkles', title: 'Артефакты', text: 'Порождения аномалий, дающие сверхспособности и смертельную радиацию. За них готовы убивать — и умирать.' },
-            ].map((c, i) => (
-              <div
-                key={c.title}
-                onClick={() => c.action && scrollTo(c.action)}
-                className={`grain rust-border group bg-card p-8 transition-all hover:border-primary/50 animate-fade-in ${c.action ? 'cursor-pointer' : ''}`}
-                style={{ animationDelay: `${i * 100}ms` }}
-              >
-                <div className="mb-5 flex h-14 w-14 items-center justify-center bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
-                  <Icon name={c.icon} size={28} />
+          <div className="mt-12 max-w-3xl space-y-2">
+            {LORE_CHAPTERS.map((ch) => {
+              const isOpen = openLore === ch.title;
+              return (
+                <div key={ch.title} className="flex flex-col">
+                  <button
+                    onClick={() => setOpenLore(isOpen ? null : ch.title)}
+                    className={`grain rust-border flex items-center justify-between gap-4 bg-card p-5 text-left transition-all ${isOpen ? 'border-primary/70' : 'hover:border-primary/40'}`}
+                  >
+                    <span className={`font-display text-sm uppercase tracking-widest ${isOpen ? 'text-primary' : 'text-foreground'}`}>{ch.title}</span>
+                    <Icon name="ChevronDown" size={18} className={`shrink-0 text-muted-foreground transition-transform duration-300 ${isOpen ? 'rotate-180 text-primary' : ''}`} />
+                  </button>
+                  {isOpen && (
+                    <div className="grain border border-t-0 border-primary/40 bg-card/80 p-6 animate-fade-in">
+                      <p className="font-body text-muted-foreground whitespace-pre-line leading-relaxed">{ch.content}</p>
+                    </div>
+                  )}
                 </div>
-                <h3 className="font-display text-2xl font-semibold uppercase tracking-wide">{c.title}</h3>
-                <p className="mt-3 font-body text-muted-foreground">{c.text}</p>
-                {c.action && (
-                  <div className="mt-4 flex items-center gap-1 font-display text-xs uppercase tracking-widest text-primary opacity-0 transition-opacity group-hover:opacity-100">
-                    Все фракции <Icon name="ArrowRight" size={14} />
-                  </div>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
