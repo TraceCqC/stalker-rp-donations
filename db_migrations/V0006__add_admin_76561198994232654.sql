@@ -1,0 +1,1 @@
+INSERT INTO t_p38734199_stalker_rp_donations.admins (steam_id) VALUES ('76561198994232654');
