@@ -193,8 +193,7 @@ export default function Index() {
   const [selectedFaction, setSelectedFaction] = useState<string | null>(null);
   const [openLore, setOpenLore] = useState<string | null>(null);
   const { user, purchases, loading: authLoading, loginWithSteam, logout } = useAuth();
-  const [serverPlayers, setServerPlayers] = useState<number | null>(null);
-  const [serverOnline, setServerOnline] = useState<boolean | null>(null);
+
   const [cabinetOpen, setCabinetOpen] = useState(false);
   const [cart, setCart] = useState<{ name: string; price: number; icon: string; qty: number }[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
@@ -241,20 +240,7 @@ export default function Index() {
     }
   }, []);
 
-  useEffect(() => {
-    const fetchStatus = () => {
-      fetch('https://functions.poehali.dev/8866a1ce-5a85-4894-ba57-fd00e3cd2636')
-        .then(r => r.json())
-        .then(data => {
-          setServerOnline(data.online);
-          setServerPlayers(data.online ? data.players : 0);
-        })
-        .catch(() => setServerOnline(false));
-    };
-    fetchStatus();
-    const interval = setInterval(fetchStatus, 60000);
-    return () => clearInterval(interval);
-  }, []);
+
 
   const scrollTo = (id: string) => {
     setActive(id);
@@ -362,12 +348,6 @@ export default function Index() {
               </a>
             </div>
             <div className="mt-12 flex flex-wrap gap-8">
-              <div>
-                <div className="font-display text-4xl font-bold text-primary">
-                  {serverPlayers === null ? '—' : serverPlayers}
-                </div>
-                <div className="font-body text-xs uppercase tracking-wider text-muted-foreground">Сталкеров онлайн</div>
-              </div>
               {[['100', 'Слотов на сервере'], ['8', 'Фракций в Зоне']].map(([n, l]) => (
                 <div key={l}>
                   <div className="font-display text-4xl font-bold text-primary">{n}</div>
