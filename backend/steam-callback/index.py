@@ -120,7 +120,7 @@ def handler(event: dict, context) -> dict:
         'statusCode': 302,
         'headers': {
             **CORS,
-            'Location': f'{site_url}/#cabinet?sid={session_id}',
+            'Location': f'{site_url}/api/steam-callback#cabinet?sid={session_id}',
         },
         'body': '',
     }
