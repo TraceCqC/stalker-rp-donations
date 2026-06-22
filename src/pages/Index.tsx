@@ -507,53 +507,6 @@ export default function Index() {
         </div>
       </section>
 
-      {/* SHOP */}
-      <section id="shop" className="relative border-t border-border py-24">
-        <div className="container px-4">
-          <SectionTitle icon="ShoppingCart" sub="За пожертвования" title="Магазин Зоны" />
-          <p className="mt-4 max-w-2xl font-body text-muted-foreground">
-            Все покупки — добровольные пожертвования на развитие проекта. Поддержи сервер и получи снаряжение для выживания.
-          </p>
-          <Tabs defaultValue="ammo" className="mt-12">
-            <TabsList className="grid h-auto w-full grid-cols-2 gap-2 bg-transparent p-0 md:grid-cols-4">
-              {SHOP_CATS.map((c) => (
-                <TabsTrigger
-                  key={c.id}
-                  value={c.id}
-                  className="grain rust-border flex items-center gap-2 bg-card py-4 font-display uppercase tracking-wider data-[state=active]:border-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-                >
-                  <Icon name={c.icon} size={18} /> {c.label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-            {Object.entries(SHOP).map(([cat, items]) => (
-              <TabsContent key={cat} value={cat} className="mt-8">
-                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                  {items.map((item) => (
-                    <div key={item.name} className="grain rust-border group flex flex-col bg-card p-6 transition-all hover:border-primary/50 hover:-translate-y-1">
-                      <div className="mb-4 flex h-16 w-16 items-center justify-center bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
-                        <Icon name={item.icon} size={32} />
-                      </div>
-                      <h3 className="font-display text-lg font-semibold uppercase leading-tight tracking-wide">{item.name}</h3>
-                      <p className="mt-2 flex-1 font-body text-sm text-muted-foreground">{item.desc}</p>
-                      <div className="mt-5 flex items-center justify-between">
-                        <span className="font-display text-2xl font-bold text-primary">{item.price} ₽</span>
-                        <Button
-                          size="sm"
-                          onClick={() => addToCart(item)}
-                          className="font-display uppercase"
-                        >
-                          <Icon name="Plus" size={16} />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </TabsContent>
-            ))}
-          </Tabs>
-        </div>
-      </section>
 
       {/* FOOTER */}
       <footer className="border-t border-border bg-card/50 py-12">
