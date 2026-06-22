@@ -147,11 +147,17 @@ const FACTIONS = [
   },
 ];
 
-const NEWS = [
-  { ver: 'Патч 1.7.3', date: '18.06.2026', title: 'Новая аномальная зона «Янтарь»', tag: 'Контент', text: 'Добавлена локация с радиоактивными аномалиями, редкими артефактами и фракцией учёных. Повышен риск — выросла награда.' },
-  { ver: 'Патч 1.7.2', date: '09.06.2026', title: 'Переработка системы выживания', tag: 'Баланс', text: 'Голод, жажда и радиация теперь влияют на стамину. Противогазы получили ресурс фильтров. Аптечки лечат медленнее.' },
-  { ver: 'Хотфикс 1.7.1', date: '02.06.2026', title: 'Исправление дюпа транспорта', tag: 'Фикс', text: 'Закрыт эксплойт с дублированием машин. Откатаны нечестно полученные предметы. Стабилизирован спавн мутантов.' },
-];
+const NEWS_URL = 'https://functions.poehali.dev/b6a922f6-e4a1-4920-afa6-ff75d1e0783e';
+
+interface NewsItem {
+  id: number;
+  ver: string;
+  date: string;
+  title: string;
+  tag: string;
+  text: string;
+  sort_order: number;
+}
 
 const SHOP: Record<string, { name: string; price: number; icon: string; desc: string }[]> = {
   ammo: [
@@ -193,6 +199,14 @@ export default function Index() {
   const [selectedFaction, setSelectedFaction] = useState<string | null>(null);
   const [openLore, setOpenLore] = useState<string | null>(null);
   const { user, purchases, loading: authLoading, loginWithSteam, logout } = useAuth();
+  const [news, setNews] = useState<NewsItem[]>([]);
+
+  useEffect(() => {
+    fetch(NEWS_URL)
+      .then(r => r.json())
+      .then(d => setNews(d.news || []))
+      .catch(() => {});
+  }, []);
 
   const [cabinetOpen, setCabinetOpen] = useState(false);
   const [cart, setCart] = useState<{ name: string; price: number; icon: string; qty: number }[]>([]);
@@ -466,8 +480,8 @@ export default function Index() {
         <div className="container px-4">
           <SectionTitle icon="Radio" sub="Сводки с Зоны" title="Новости и патчи" />
           <div className="mt-12 space-y-5">
-            {NEWS.map((n) => (
-              <div key={n.ver} className="grain rust-border group flex flex-col gap-4 bg-card p-6 transition-all hover:border-primary/50 md:flex-row md:items-center">
+            {news.map((n) => (
+              <div key={n.id} className="grain rust-border group flex flex-col gap-4 bg-card p-6 transition-all hover:border-primary/50 md:flex-row md:items-center">
                 <div className="flex shrink-0 flex-col gap-2 md:w-48">
                   <span className="font-display text-xl font-bold uppercase tracking-wide text-primary">{n.ver}</span>
                   <span className="flex items-center gap-2 font-body text-sm text-muted-foreground">
