@@ -355,9 +355,11 @@ export default function Index() {
               <Button size="lg" onClick={() => scrollTo('connect')} className="font-display uppercase tracking-widest animate-radiate">
                 <Icon name="Wifi" size={18} className="mr-2" /> Подключиться
               </Button>
-              <Button size="lg" variant="outline" onClick={() => scrollTo('shop')} className="font-display uppercase tracking-widest border-primary/40">
-                <Icon name="ShoppingCart" size={18} className="mr-2" /> В магазин
-              </Button>
+              <a href="/shop">
+                <Button size="lg" variant="outline" className="font-display uppercase tracking-widest border-primary/40">
+                  <Icon name="ShoppingCart" size={18} className="mr-2" /> В магазин
+                </Button>
+              </a>
             </div>
             <div className="mt-12 flex flex-wrap gap-8">
               <div>
