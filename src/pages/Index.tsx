@@ -324,10 +324,8 @@ export default function Index() {
         <div className="container relative z-10 px-4 py-20">
           <div className="max-w-3xl animate-fade-in">
             <div className="mb-6 inline-flex items-center gap-2 border border-primary/40 bg-background/60 px-3 py-1.5">
-              <span className={`h-2 w-2 rounded-full ${serverOnline === false ? 'bg-red-500' : 'bg-primary animate-flicker'}`} />
-              <span className={`font-display text-xs uppercase tracking-[0.3em] ${serverOnline === false ? 'text-red-400' : 'text-primary'}`}>
-                {serverOnline === false ? 'Сервер офлайн · DayZ' : 'Сервер онлайн · DayZ'}
-              </span>
+              <span className="h-2 w-2 rounded-full bg-primary animate-flicker" />
+              <span className="font-display text-xs uppercase tracking-[0.3em] text-primary">Сервер онлайн · DayZ</span>
             </div>
             <h1 className="font-display text-6xl font-bold uppercase leading-[0.9] tracking-tight md:text-8xl">
               Добро пожаловать <br />
