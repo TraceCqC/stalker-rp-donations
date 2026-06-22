@@ -34,12 +34,16 @@ const CATEGORIES = [
   { key: 'privilege', label: 'Привилегии', icon: 'Shield' },
   { key: 'items', label: 'Снаряжение', icon: 'Package' },
   { key: 'currency', label: 'Валюта', icon: 'Coins' },
+  { key: 'transport', label: 'Транспорт', icon: 'Car' },
+  { key: 'furniture', label: 'Фурнитура', icon: 'Armchair' },
 ];
 
 const CAT_ICON: Record<string, string> = {
   privilege: 'Shield',
   items: 'Package',
   currency: 'Coins',
+  transport: 'Car',
+  furniture: 'Armchair',
 };
 
 function authHeaders() {
