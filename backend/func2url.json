@@ -1,4 +1,7 @@
 {
+  "shop-items": "https://functions.poehali.dev/b01b5e13-7c62-4290-b55e-6ebec5ad9fd4",
+  "shop-create-order": "https://functions.poehali.dev/5fedc143-b342-4e15-9b52-04185e36c447",
+  "shop-robokassa-webhook": "https://functions.poehali.dev/d4eeceeb-550c-4c00-9652-b5cd1f098391",
   "server-status": "https://functions.poehali.dev/8866a1ce-5a85-4894-ba57-fd00e3cd2636",
   "steam-callback": "https://functions.poehali.dev/edbd3d47-b8f0-4f79-beaf-4ba48d8f3bf6",
   "auth-me": "https://functions.poehali.dev/085b5268-60a1-42ec-92f7-19cb411dcd7d",

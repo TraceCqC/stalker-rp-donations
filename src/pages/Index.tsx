@@ -294,6 +294,10 @@ export default function Index() {
             ))}
           </nav>
           <div className="flex items-center gap-2">
+            <a href="/shop" className="hidden md:flex items-center gap-2 border border-primary/40 bg-card px-3 py-1.5 font-display text-sm uppercase tracking-wider text-primary transition-colors hover:border-primary hover:bg-primary/10">
+              <Icon name="ShoppingCart" size={15} />
+              Магазин
+            </a>
             {cartCount > 0 && (
               <button onClick={() => setCartOpen(true)} className="relative flex items-center gap-2 border border-primary/60 bg-card px-3 py-1.5 transition-colors hover:border-primary">
                 <Icon name="ShoppingCart" size={16} className="text-primary" />
