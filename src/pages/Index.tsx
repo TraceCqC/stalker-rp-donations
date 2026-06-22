@@ -16,7 +16,7 @@ const NAV = [
   { id: 'factions', label: 'Фракции', icon: 'Users' },
   { id: 'connect', label: 'Подключение', icon: 'Wifi' },
   { id: 'news', label: 'Новости', icon: 'Radio' },
-  { id: 'shop', label: 'Магазин', icon: 'ShoppingCart' },
+
 ];
 
 const LORE_CHAPTERS = [
