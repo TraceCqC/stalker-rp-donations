@@ -55,6 +55,7 @@ export default function Shop() {
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState('all');
   const [buyingId, setBuyingId] = useState<number | null>(null);
+  const [selectedItem, setSelectedItem] = useState<ShopItem | null>(null);
 
   useEffect(() => {
     fetch(SHOP_ITEMS_URL)
@@ -177,65 +178,45 @@ export default function Shop() {
             {filtered.map((item) => (
               <div
                 key={item.id}
-                className={`grain rust-border relative flex flex-col bg-card transition-all hover:border-primary/50 ${item.is_popular ? 'ring-1 ring-primary/40' : ''}`}
+                onClick={() => setSelectedItem(item)}
+                className={`grain rust-border relative flex flex-col bg-card transition-all hover:border-primary/50 cursor-pointer ${item.is_popular ? 'ring-1 ring-primary/40' : ''}`}
               >
                 {/* Badge */}
                 {item.badge && (
-                  <div className={`absolute top-4 right-4 px-2.5 py-1 font-display text-xs uppercase tracking-widest ${BADGE_COLOR[item.badge] ?? 'bg-muted text-foreground'}`}>
+                  <div className={`absolute top-4 right-4 z-10 px-2.5 py-1 font-display text-xs uppercase tracking-widest ${BADGE_COLOR[item.badge] ?? 'bg-muted text-foreground'}`}>
                     {item.badge}
                   </div>
                 )}
 
-                {/* Image */}
-                {item.image_url && (
+                {/* Image or icon area */}
+                {item.image_url ? (
                   <div className="w-full h-48 overflow-hidden border-b border-border">
-                    <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
+                    <img src={item.image_url} alt={item.name} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                  </div>
+                ) : (
+                  <div className="w-full h-32 flex items-center justify-center bg-primary/5 border-b border-border">
+                    <Icon name={CAT_ICON[item.category] ?? 'Package'} size={42} className="text-primary/40" />
                   </div>
                 )}
 
-                <div className="p-6 flex-1">
-                  {/* Icon (only if no image) */}
-                  {!item.image_url && (
-                    <div className="mb-5 flex h-14 w-14 items-center justify-center bg-primary/10 text-primary">
-                      <Icon name={CAT_ICON[item.category] ?? 'Package'} size={30} />
-                    </div>
-                  )}
-
-                  {/* Category label */}
+                <div className="p-5 flex-1 flex flex-col">
                   <p className="font-display text-xs uppercase tracking-[0.3em] text-primary mb-1">
                     {CATEGORIES.find((c) => c.key === item.category)?.label}
                   </p>
-
-                  {/* Name */}
-                  <h3 className="font-display text-2xl font-bold uppercase tracking-tight leading-tight">
+                  <h3 className="font-display text-xl font-bold uppercase tracking-tight leading-tight">
                     {item.name}
                   </h3>
-
-                  {/* Description */}
-                  <p className="mt-3 font-body text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+                  <p className="mt-2 font-body text-sm text-muted-foreground leading-relaxed line-clamp-2 flex-1">
                     {item.description}
                   </p>
-                </div>
-
-                {/* Footer */}
-                <div className="border-t border-border p-6 flex items-center justify-between gap-4">
-                  <div>
-                    <div className="font-display text-3xl font-bold text-primary">
-                      {item.price.toFixed(0)} <span className="text-lg">₽</span>
-                    </div>
+                  <div className="mt-4 flex items-center justify-between">
+                    <span className="font-display text-2xl font-bold text-primary">
+                      {item.price.toFixed(0)} <span className="text-base">₽</span>
+                    </span>
+                    <span className="font-display text-xs uppercase tracking-widest text-muted-foreground flex items-center gap-1">
+                      <Icon name="Eye" size={13} /> Подробнее
+                    </span>
                   </div>
-                  <Button
-                    onClick={() => handleBuy(item)}
-                    disabled={buyingId === item.id}
-                    className="font-display uppercase tracking-widest shrink-0"
-                  >
-                    {buyingId === item.id ? (
-                      <Icon name="Loader" size={16} className="animate-spin mr-2" />
-                    ) : (
-                      <Icon name="ShoppingCart" size={16} className="mr-2" />
-                    )}
-                    {user ? 'Купить' : 'Войти'}
-                  </Button>
                 </div>
               </div>
             ))}
@@ -247,20 +228,98 @@ export default function Shop() {
           {[
             { icon: 'Zap', title: 'Мгновенно', desc: 'Привилегии активируются автоматически после оплаты' },
             { icon: 'ShieldCheck', title: 'Безопасно', desc: 'Оплата через Robokassa — карты РФ, СБП, ЮMoney' },
-            { icon: 'HeartHandshake', title: 'Поддержка', desc: 'Все средства идут на развитие и аренду сервера' },
-          ].map((b) => (
-            <div key={b.title} className="flex gap-4 items-start">
+            { icon: 'HeadphonesIcon', title: 'Поддержка', desc: 'Проблемы с покупкой? Напиши в Discord-сервер' },
+          ].map((f) => (
+            <div key={f.title} className="flex gap-4">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center bg-primary/10 text-primary">
-                <Icon name={b.icon} size={20} />
+                <Icon name={f.icon} size={20} />
               </div>
               <div>
-                <div className="font-display text-sm uppercase tracking-widest">{b.title}</div>
-                <div className="mt-1 font-body text-sm text-muted-foreground">{b.desc}</div>
+                <div className="font-display text-sm font-bold uppercase tracking-wider">{f.title}</div>
+                <div className="mt-1 font-body text-sm text-muted-foreground">{f.desc}</div>
               </div>
             </div>
           ))}
         </div>
       </div>
+
+      {/* Item Modal */}
+      {selectedItem && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4"
+          onClick={() => setSelectedItem(null)}
+        >
+          <div
+            className="grain rust-border w-full max-w-lg bg-card overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="hazard-stripe h-1 w-full" />
+
+            {/* Image */}
+            {selectedItem.image_url ? (
+              <div className="w-full h-56 overflow-hidden">
+                <img src={selectedItem.image_url} alt={selectedItem.name} className="w-full h-full object-cover" />
+              </div>
+            ) : (
+              <div className="w-full h-32 flex items-center justify-center bg-primary/5 border-b border-border">
+                <Icon name={CAT_ICON[selectedItem.category] ?? 'Package'} size={52} className="text-primary/40" />
+              </div>
+            )}
+
+            <div className="p-6">
+              {/* Header */}
+              <div className="flex items-start justify-between gap-4 mb-4">
+                <div>
+                  <p className="font-display text-xs uppercase tracking-[0.3em] text-primary mb-1">
+                    {CATEGORIES.find((c) => c.key === selectedItem.category)?.label}
+                  </p>
+                  <h2 className="font-display text-2xl font-bold uppercase tracking-tight leading-tight">
+                    {selectedItem.name}
+                  </h2>
+                </div>
+                <button
+                  onClick={() => setSelectedItem(null)}
+                  className="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <Icon name="X" size={20} />
+                </button>
+              </div>
+
+              {/* Badge */}
+              {selectedItem.badge && (
+                <div className={`inline-block mb-4 px-2.5 py-1 font-display text-xs uppercase tracking-widest ${BADGE_COLOR[selectedItem.badge] ?? 'bg-muted text-foreground'}`}>
+                  {selectedItem.badge}
+                </div>
+              )}
+
+              {/* Description */}
+              <p className="font-body text-muted-foreground leading-relaxed whitespace-pre-line">
+                {selectedItem.description}
+              </p>
+
+              {/* Footer */}
+              <div className="mt-6 flex items-center justify-between gap-4 border-t border-border pt-5">
+                <div className="font-display text-3xl font-bold text-primary">
+                  {selectedItem.price.toFixed(0)} <span className="text-lg">₽</span>
+                </div>
+                <Button
+                  onClick={() => handleBuy(selectedItem)}
+                  disabled={buyingId === selectedItem.id}
+                  size="lg"
+                  className="font-display uppercase tracking-widest"
+                >
+                  {buyingId === selectedItem.id ? (
+                    <Icon name="Loader" size={16} className="animate-spin mr-2" />
+                  ) : (
+                    <Icon name="ShoppingCart" size={16} className="mr-2" />
+                  )}
+                  {user ? 'Купить' : 'Войти и купить'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
