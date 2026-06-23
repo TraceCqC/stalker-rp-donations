@@ -48,6 +48,7 @@ def row_to_faction(r) -> dict:
         'id': r[0], 'name': r[1], 'icon': r[2], 'color': r[3],
         'alignment': r[4], 'description': r[5],
         'is_paid': r[6], 'sort_order': r[7], 'is_active': r[8],
+        'icon_url': r[9],
     }
 
 
@@ -67,7 +68,7 @@ def handler(event: dict, context) -> dict:
         show_all = params.get('all') == '1'
         where = '' if show_all else 'WHERE is_active = TRUE'
         cur.execute(
-            f"SELECT id, name, icon, color, alignment, description, is_paid, sort_order, is_active FROM {SCHEMA}.factions {where} ORDER BY sort_order, id"
+            f"SELECT id, name, icon, color, alignment, description, is_paid, sort_order, is_active, icon_url FROM {SCHEMA}.factions {where} ORDER BY sort_order, id"
         )
         factions = [row_to_faction(r) for r in cur.fetchall()]
         cur.close(); conn.close()
@@ -79,12 +80,13 @@ def handler(event: dict, context) -> dict:
 
     if method == 'POST':
         cur.execute(
-            f"""INSERT INTO {SCHEMA}.factions (name, icon, color, alignment, description, is_paid, sort_order, is_active)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                RETURNING id, name, icon, color, alignment, description, is_paid, sort_order, is_active""",
+            f"""INSERT INTO {SCHEMA}.factions (name, icon, color, alignment, description, is_paid, sort_order, is_active, icon_url)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING id, name, icon, color, alignment, description, is_paid, sort_order, is_active, icon_url""",
             (body.get('name'), body.get('icon', 'Shield'), body.get('color', 'text-gray-400'),
              body.get('alignment', ''), body.get('description', ''),
-             body.get('is_paid', False), body.get('sort_order', 0), body.get('is_active', True)),
+             body.get('is_paid', False), body.get('sort_order', 0), body.get('is_active', True),
+             body.get('icon_url') or None),
         )
         item = row_to_faction(cur.fetchone())
         conn.commit(); cur.close(); conn.close()
@@ -97,12 +99,13 @@ def handler(event: dict, context) -> dict:
             return {'statusCode': 400, 'headers': CORS, 'body': json.dumps({'error': 'id required'})}
         cur.execute(
             f"""UPDATE {SCHEMA}.factions
-                SET name=%s, icon=%s, color=%s, alignment=%s, description=%s, is_paid=%s, sort_order=%s, is_active=%s
+                SET name=%s, icon=%s, color=%s, alignment=%s, description=%s, is_paid=%s, sort_order=%s, is_active=%s, icon_url=%s
                 WHERE id=%s
-                RETURNING id, name, icon, color, alignment, description, is_paid, sort_order, is_active""",
+                RETURNING id, name, icon, color, alignment, description, is_paid, sort_order, is_active, icon_url""",
             (body.get('name'), body.get('icon', 'Shield'), body.get('color', 'text-gray-400'),
              body.get('alignment', ''), body.get('description', ''),
-             body.get('is_paid', False), body.get('sort_order', 0), body.get('is_active', True), int(fid)),
+             body.get('is_paid', False), body.get('sort_order', 0), body.get('is_active', True),
+             body.get('icon_url') or None, int(fid)),
         )
         row = cur.fetchone()
         conn.commit(); cur.close(); conn.close()

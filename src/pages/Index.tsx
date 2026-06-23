@@ -100,6 +100,7 @@ interface FactionItem {
   is_paid: boolean;
   sort_order: number;
   is_active: boolean;
+  icon_url: string | null;
 }
 
 const NEWS_URL = 'https://functions.poehali.dev/b6a922f6-e4a1-4920-afa6-ff75d1e0783e';
@@ -374,8 +375,11 @@ export default function Index() {
                     onClick={() => setSelectedFaction(isOpen ? null : String(f.id))}
                     className={`grain rust-border group flex items-center gap-4 bg-card p-6 text-left transition-all ${isOpen ? 'border-primary/70 bg-card' : 'hover:border-primary/40'}`}
                   >
-                    <div className={`flex h-14 w-14 shrink-0 items-center justify-center bg-card border border-border transition-colors ${isOpen ? 'bg-primary border-primary' : 'group-hover:bg-primary/10'}`}>
-                      <Icon name={f.icon} size={28} className={isOpen ? 'text-primary-foreground' : f.color} />
+                    <div className={`flex h-14 w-14 shrink-0 items-center justify-center bg-card border border-border transition-colors overflow-hidden ${isOpen ? 'bg-primary border-primary' : 'group-hover:bg-primary/10'}`}>
+                      {f.icon_url
+                        ? <img src={f.icon_url} alt={f.name} className="h-10 w-10 object-contain" />
+                        : <Icon name={f.icon} size={28} className={isOpen ? 'text-primary-foreground' : f.color} />
+                      }
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">

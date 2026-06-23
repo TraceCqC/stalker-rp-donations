@@ -1,0 +1,1 @@
+ALTER TABLE t_p38734199_stalker_rp_donations.factions ADD COLUMN icon_url TEXT DEFAULT NULL;

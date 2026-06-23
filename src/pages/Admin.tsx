@@ -68,6 +68,7 @@ interface FactionItem {
   is_paid: boolean;
   sort_order: number;
   is_active: boolean;
+  icon_url: string | null;
 }
 
 const EMPTY_FACTION: Omit<FactionItem, 'id'> = {
@@ -79,6 +80,7 @@ const EMPTY_FACTION: Omit<FactionItem, 'id'> = {
   is_paid: false,
   sort_order: 0,
   is_active: true,
+  icon_url: null,
 };
 
 const FACTION_COLORS = [
@@ -139,6 +141,7 @@ export default function Admin() {
   const [isNewFaction, setIsNewFaction] = useState(false);
   const [savingFaction, setSavingFaction] = useState(false);
   const [deletingFactionId, setDeletingFactionId] = useState<number | null>(null);
+  const [uploadingFactionIcon, setUploadingFactionIcon] = useState(false);
 
   const fetchItems = () => {
     setLoading(true);
@@ -288,6 +291,30 @@ export default function Admin() {
   const openNewFaction = () => { setIsNewFaction(true); setEditFaction({ id: 0, ...EMPTY_FACTION }); };
   const openEditFaction = (f: FactionItem) => { setIsNewFaction(false); setEditFaction({ ...f }); };
   const closeEditFaction = () => setEditFaction(null);
+
+  const handleFactionIconUpload = async (file: File) => {
+    if (!editFaction) return;
+    setUploadingFactionIcon(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const base64 = (e.target?.result as string).split(',')[1];
+        const res = await fetch(UPLOAD_URL, {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify({ data: base64, content_type: file.type }),
+        });
+        const data = await res.json();
+        if (data.url) setEditFaction((prev) => prev ? { ...prev, icon_url: data.url } : prev);
+        else toast({ title: 'Ошибка загрузки', variant: 'destructive' });
+        setUploadingFactionIcon(false);
+      };
+      reader.readAsDataURL(file);
+    } catch {
+      toast({ title: 'Ошибка загрузки', variant: 'destructive' });
+      setUploadingFactionIcon(false);
+    }
+  };
 
   const handleSaveFaction = async () => {
     if (!editFaction) return;
@@ -892,10 +919,45 @@ export default function Admin() {
                   </div>
                 </div>
 
+                {/* Icon upload */}
+                <div>
+                  <label className="mb-1.5 block font-display text-xs uppercase tracking-widest text-muted-foreground">Своя иконка (картинка)</label>
+                  {editFaction.icon_url ? (
+                    <div className="relative flex items-center gap-3">
+                      <img src={editFaction.icon_url} alt="" className="h-14 w-14 object-contain border border-border bg-background p-1" />
+                      <span className="font-body text-xs text-muted-foreground">Загружена своя иконка</span>
+                      <button
+                        onClick={() => setEditFaction({ ...editFaction, icon_url: null })}
+                        className="ml-auto flex h-7 w-7 items-center justify-center border border-border text-muted-foreground hover:border-destructive hover:text-destructive transition-colors"
+                        title="Удалить иконку"
+                      >
+                        <Icon name="X" size={14} />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className={`flex items-center gap-3 border border-dashed border-border bg-background px-4 py-3 cursor-pointer hover:border-primary/60 transition-colors ${uploadingFactionIcon ? 'opacity-60 pointer-events-none' : ''}`}>
+                      {uploadingFactionIcon
+                        ? <Icon name="Loader" size={20} className="animate-spin text-primary shrink-0" />
+                        : <Icon name="ImagePlus" size={20} className="text-muted-foreground shrink-0" />}
+                      <span className="font-display text-xs uppercase tracking-widest text-muted-foreground">
+                        {uploadingFactionIcon ? 'Загружаю...' : 'Загрузить своё изображение'}
+                      </span>
+                      <input type="file" accept="image/*" className="hidden"
+                        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFactionIconUpload(f); }} />
+                    </label>
+                  )}
+                  {!editFaction.icon_url && (
+                    <p className="mt-1 font-body text-xs text-muted-foreground">Если не загружена — используется lucide-иконка выше</p>
+                  )}
+                </div>
+
                 {/* Preview */}
                 <div className="grain rust-border bg-background p-4 flex items-center gap-4">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center bg-card border border-border">
-                    <Icon name={editFaction.icon} size={24} className={editFaction.color} fallback="Shield" />
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center bg-card border border-border overflow-hidden">
+                    {editFaction.icon_url
+                      ? <img src={editFaction.icon_url} alt="" className="h-full w-full object-contain p-1" />
+                      : <Icon name={editFaction.icon} size={24} className={editFaction.color} fallback="Shield" />
+                    }
                   </div>
                   <div>
                     <div className="font-display text-lg font-bold uppercase tracking-wide">{editFaction.name || 'Название'}</div>
