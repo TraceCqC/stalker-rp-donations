@@ -257,8 +257,8 @@ export default function Shop() {
 
             {/* Image */}
             {selectedItem.image_url ? (
-              <div className="w-full h-56 overflow-hidden">
-                <img src={selectedItem.image_url} alt={selectedItem.name} className="w-full h-full object-cover" />
+              <div className="w-full bg-black/30 flex items-center justify-center border-b border-border">
+                <img src={selectedItem.image_url} alt={selectedItem.name} className="w-full object-contain max-h-[60vh]" />
               </div>
             ) : (
               <div className="w-full h-32 flex items-center justify-center bg-primary/5 border-b border-border">
