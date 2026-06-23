@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 const ADMIN_URL = 'https://functions.poehali.dev/b71dc419-3bb9-4658-8144-bbc49fb591dd';
 const NEWS_URL = 'https://functions.poehali.dev/b6a922f6-e4a1-4920-afa6-ff75d1e0783e';
 const UPLOAD_URL = 'https://functions.poehali.dev/085b509e-630e-4156-9891-b5c5fbf3b537';
+const FACTIONS_URL = 'https://functions.poehali.dev/96537813-a83b-4c40-8239-6bea84d441f5';
 
 interface ShopItem {
   id: number;
@@ -57,6 +58,35 @@ const EMPTY_NEWS: Omit<NewsItem, 'id'> = {
 
 const TAGS = ['Контент', 'Баланс', 'Фикс', 'Ивент', 'Обновление'];
 
+interface FactionItem {
+  id: number;
+  name: string;
+  icon: string;
+  color: string;
+  alignment: string;
+  description: string;
+  is_paid: boolean;
+  sort_order: number;
+  is_active: boolean;
+}
+
+const EMPTY_FACTION: Omit<FactionItem, 'id'> = {
+  name: '',
+  icon: 'Shield',
+  color: 'text-gray-400',
+  alignment: '',
+  description: '',
+  is_paid: false,
+  sort_order: 0,
+  is_active: true,
+};
+
+const FACTION_COLORS = [
+  'text-red-400', 'text-green-400', 'text-blue-400', 'text-purple-400',
+  'text-orange-400', 'text-yellow-400', 'text-cyan-400', 'text-lime-400',
+  'text-pink-400', 'text-gray-400', 'text-white',
+];
+
 const CATEGORIES = [
   { key: 'privilege', label: 'Привилегии', icon: 'Shield' },
   { key: 'items', label: 'Снаряжение', icon: 'Package' },
@@ -81,7 +111,7 @@ export default function Admin() {
   const { user, loading: authLoading, loginWithSteam } = useAuth();
   const { toast } = useToast();
 
-  const [tab, setTab] = useState<'shop' | 'news'>('shop');
+  const [tab, setTab] = useState<'shop' | 'news' | 'factions'>('shop');
 
   // Shop state
   const [items, setItems] = useState<ShopItem[]>([]);
@@ -101,6 +131,14 @@ export default function Admin() {
   const [savingNews, setSavingNews] = useState(false);
   const [deletingNewsId, setDeletingNewsId] = useState<number | null>(null);
   const [uploadingNewsImage, setUploadingNewsImage] = useState(false);
+
+  // Factions state
+  const [factions, setFactions] = useState<FactionItem[]>([]);
+  const [factionsLoading, setFactionsLoading] = useState(false);
+  const [editFaction, setEditFaction] = useState<FactionItem | null>(null);
+  const [isNewFaction, setIsNewFaction] = useState(false);
+  const [savingFaction, setSavingFaction] = useState(false);
+  const [deletingFactionId, setDeletingFactionId] = useState<number | null>(null);
 
   const fetchItems = () => {
     setLoading(true);
@@ -123,8 +161,17 @@ export default function Admin() {
       .finally(() => setNewsLoading(false));
   };
 
+  const fetchFactions = () => {
+    setFactionsLoading(true);
+    fetch(`${FACTIONS_URL}?all=1`, { headers: authHeaders() })
+      .then(r => r.json())
+      .then(d => setFactions(d.factions || []))
+      .catch(() => {})
+      .finally(() => setFactionsLoading(false));
+  };
+
   useEffect(() => {
-    if (!authLoading && user) { fetchItems(); fetchNews(); }
+    if (!authLoading && user) { fetchItems(); fetchNews(); fetchFactions(); }
     else if (!authLoading && !user) setLoading(false);
   }, [authLoading, user]);
 
@@ -237,6 +284,39 @@ export default function Admin() {
     finally { setDeletingNewsId(null); }
   };
 
+  // Factions handlers
+  const openNewFaction = () => { setIsNewFaction(true); setEditFaction({ id: 0, ...EMPTY_FACTION }); };
+  const openEditFaction = (f: FactionItem) => { setIsNewFaction(false); setEditFaction({ ...f }); };
+  const closeEditFaction = () => setEditFaction(null);
+
+  const handleSaveFaction = async () => {
+    if (!editFaction) return;
+    setSavingFaction(true);
+    try {
+      const url = isNewFaction ? FACTIONS_URL : `${FACTIONS_URL}?id=${editFaction.id}`;
+      const res = await fetch(url, { method: isNewFaction ? 'POST' : 'PUT', headers: authHeaders(), body: JSON.stringify(editFaction) });
+      const data = await res.json();
+      if (data.item) { toast({ title: isNewFaction ? 'Фракция создана' : 'Сохранено' }); closeEditFaction(); fetchFactions(); }
+      else toast({ title: 'Ошибка', variant: 'destructive' });
+    } catch { toast({ title: 'Ошибка соединения', variant: 'destructive' }); }
+    finally { setSavingFaction(false); }
+  };
+
+  const handleDeleteFaction = async (id: number) => {
+    if (!confirm('Удалить фракцию?')) return;
+    setDeletingFactionId(id);
+    try {
+      await fetch(`${FACTIONS_URL}?id=${id}`, { method: 'DELETE', headers: authHeaders() });
+      toast({ title: 'Удалено' }); fetchFactions();
+    } catch { toast({ title: 'Ошибка', variant: 'destructive' }); }
+    finally { setDeletingFactionId(null); }
+  };
+
+  const toggleFactionActive = async (f: FactionItem) => {
+    await fetch(`${FACTIONS_URL}?id=${f.id}`, { method: 'PUT', headers: authHeaders(), body: JSON.stringify({ ...f, is_active: !f.is_active }) });
+    fetchFactions();
+  };
+
   if (!authLoading && !user) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -315,6 +395,12 @@ export default function Admin() {
             className={`flex items-center gap-2 px-6 py-2.5 font-display text-sm uppercase tracking-widest border transition-all ${tab === 'news' ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:border-primary/40'}`}
           >
             <Icon name="Radio" size={15} /> Новости
+          </button>
+          <button
+            onClick={() => setTab('factions')}
+            className={`flex items-center gap-2 px-6 py-2.5 font-display text-sm uppercase tracking-widest border transition-all ${tab === 'factions' ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:border-primary/40'}`}
+          >
+            <Icon name="Users" size={15} /> Фракции
           </button>
         </div>
 
@@ -455,6 +541,77 @@ export default function Admin() {
                         className="flex h-8 w-8 items-center justify-center border border-border text-muted-foreground transition-colors hover:border-destructive hover:text-destructive"
                       >
                         {deletingNewsId === n.id ? <Icon name="Loader" size={15} className="animate-spin" /> : <Icon name="Trash2" size={15} />}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ── FACTIONS TAB ── */}
+        {tab === 'factions' && (
+          <>
+            <div className="flex items-center justify-between mb-10">
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center bg-primary/10 text-primary">
+                  <Icon name="Users" size={26} />
+                </div>
+                <div>
+                  <p className="font-display text-xs uppercase tracking-[0.3em] text-primary">Администрирование</p>
+                  <h1 className="font-display text-4xl font-bold uppercase tracking-tight">Фракции</h1>
+                </div>
+              </div>
+              <Button onClick={openNewFaction} className="font-display uppercase tracking-widest">
+                <Icon name="Plus" size={16} className="mr-2" /> Новая фракция
+              </Button>
+            </div>
+
+            {factionsLoading ? (
+              <div className="flex items-center justify-center py-24">
+                <Icon name="Radiation" size={48} className="animate-spin text-primary" />
+              </div>
+            ) : factions.length === 0 ? (
+              <div className="grain rust-border bg-card p-12 text-center text-muted-foreground font-body">
+                Фракций пока нет
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {factions.map((f) => (
+                  <div key={f.id} className={`grain rust-border flex flex-col sm:flex-row sm:items-center gap-4 bg-card p-5 transition-all ${!f.is_active ? 'opacity-50' : ''}`}>
+                    <div className={`flex h-11 w-11 shrink-0 items-center justify-center bg-primary/10`}>
+                      <Icon name={f.icon} size={22} className={f.color} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-display text-lg font-bold uppercase tracking-wide">{f.name}</span>
+                        {f.is_paid
+                          ? <span className="font-display text-xs bg-primary/20 text-primary px-2 py-0.5 uppercase tracking-wider border border-primary/30">Платная</span>
+                          : <span className="font-display text-xs bg-green-900/30 text-green-400 px-2 py-0.5 uppercase tracking-wider border border-green-700/40">Бесплатная</span>
+                        }
+                        {!f.is_active && <span className="font-display text-xs bg-muted text-muted-foreground px-2 py-0.5 uppercase tracking-wider">Скрыта</span>}
+                      </div>
+                      <div className={`font-display text-xs uppercase tracking-widest mt-0.5 ${f.color}`}>{f.alignment}</div>
+                      <div className="mt-1 font-body text-sm text-muted-foreground line-clamp-1">{f.description}</div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        onClick={() => toggleFactionActive(f)}
+                        className={`flex h-8 w-8 items-center justify-center border transition-colors ${f.is_active ? 'border-green-700 text-green-500 hover:bg-green-900/20' : 'border-border text-muted-foreground hover:border-primary/40'}`}
+                        title={f.is_active ? 'Скрыть' : 'Показать'}
+                      >
+                        <Icon name={f.is_active ? 'Eye' : 'EyeOff'} size={15} />
+                      </button>
+                      <button onClick={() => openEditFaction(f)} className="flex h-8 w-8 items-center justify-center border border-border text-muted-foreground transition-colors hover:border-primary hover:text-primary">
+                        <Icon name="Pencil" size={15} />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteFaction(f.id)}
+                        disabled={deletingFactionId === f.id}
+                        className="flex h-8 w-8 items-center justify-center border border-border text-muted-foreground transition-colors hover:border-destructive hover:text-destructive"
+                      >
+                        {deletingFactionId === f.id ? <Icon name="Loader" size={15} className="animate-spin" /> : <Icon name="Trash2" size={15} />}
                       </button>
                     </div>
                   </div>
@@ -657,6 +814,106 @@ export default function Admin() {
                   {isNewNews ? 'Создать' : 'Сохранить'}
                 </Button>
                 <Button variant="outline" onClick={closeEditNews} className="font-display uppercase tracking-widest border-border">Отмена</Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Faction Edit Modal */}
+      {editFaction && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={closeEditFaction}>
+          <div className="grain rust-border w-full max-w-lg bg-card max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="hazard-stripe h-1 w-full" />
+            <div className="p-6">
+              <div className="mb-6 flex items-center justify-between">
+                <h2 className="font-display text-2xl font-bold uppercase tracking-tight">{isNewFaction ? 'Новая фракция' : 'Редактировать фракцию'}</h2>
+                <button onClick={closeEditFaction} className="text-muted-foreground hover:text-foreground"><Icon name="X" size={20} /></button>
+              </div>
+              <div className="space-y-4">
+
+                {/* Name */}
+                <div>
+                  <label className="mb-1.5 block font-display text-xs uppercase tracking-widest text-muted-foreground">Название</label>
+                  <input className="w-full border border-border bg-background px-3 py-2 font-body text-sm text-foreground outline-none focus:border-primary"
+                    value={editFaction.name} onChange={(e) => setEditFaction({ ...editFaction, name: e.target.value })} placeholder="Название фракции" />
+                </div>
+
+                {/* Alignment */}
+                <div>
+                  <label className="mb-1.5 block font-display text-xs uppercase tracking-widest text-muted-foreground">Идеология</label>
+                  <input className="w-full border border-border bg-background px-3 py-2 font-body text-sm text-foreground outline-none focus:border-primary"
+                    value={editFaction.alignment} onChange={(e) => setEditFaction({ ...editFaction, alignment: e.target.value })} placeholder="Порядок, Хаос, Закон..." />
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label className="mb-1.5 block font-display text-xs uppercase tracking-widest text-muted-foreground">Описание</label>
+                  <textarea className="w-full border border-border bg-background px-3 py-2 font-body text-sm text-foreground outline-none focus:border-primary resize-none"
+                    rows={4} value={editFaction.description} onChange={(e) => setEditFaction({ ...editFaction, description: e.target.value })} placeholder="Описание фракции..." />
+                </div>
+
+                {/* Icon */}
+                <div>
+                  <label className="mb-1.5 block font-display text-xs uppercase tracking-widest text-muted-foreground">Иконка (lucide)</label>
+                  <input className="w-full border border-border bg-background px-3 py-2 font-body text-sm text-foreground outline-none focus:border-primary"
+                    value={editFaction.icon} onChange={(e) => setEditFaction({ ...editFaction, icon: e.target.value })} placeholder="Shield, Skull, Flame..." />
+                </div>
+
+                {/* Color */}
+                <div>
+                  <label className="mb-1.5 block font-display text-xs uppercase tracking-widest text-muted-foreground">Цвет</label>
+                  <div className="flex flex-wrap gap-2">
+                    {FACTION_COLORS.map((c) => (
+                      <button key={c} onClick={() => setEditFaction({ ...editFaction, color: c })}
+                        className={`px-3 py-1.5 font-display text-xs border transition-colors ${editFaction.color === c ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/40'}`}>
+                        <span className={c}>■</span> {c.replace('text-', '').replace('-400', '').replace('-', ' ')}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Sort + toggles */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="mb-1.5 block font-display text-xs uppercase tracking-widest text-muted-foreground">Порядок</label>
+                    <input type="number" className="w-full border border-border bg-background px-3 py-2 font-body text-sm text-foreground outline-none focus:border-primary"
+                      value={editFaction.sort_order} onChange={(e) => setEditFaction({ ...editFaction, sort_order: parseInt(e.target.value) || 0 })} />
+                  </div>
+                  <div className="flex flex-col justify-end gap-2 pb-1">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" className="accent-primary" checked={editFaction.is_paid} onChange={(e) => setEditFaction({ ...editFaction, is_paid: e.target.checked })} />
+                      <span className="font-display text-xs uppercase tracking-widest">Платная</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" className="accent-primary" checked={editFaction.is_active} onChange={(e) => setEditFaction({ ...editFaction, is_active: e.target.checked })} />
+                      <span className="font-display text-xs uppercase tracking-widest">Активна</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Preview */}
+                <div className="grain rust-border bg-background p-4 flex items-center gap-4">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center bg-card border border-border">
+                    <Icon name={editFaction.icon} size={24} className={editFaction.color} fallback="Shield" />
+                  </div>
+                  <div>
+                    <div className="font-display text-lg font-bold uppercase tracking-wide">{editFaction.name || 'Название'}</div>
+                    <div className={`font-display text-xs uppercase tracking-widest ${editFaction.color}`}>{editFaction.alignment || 'Идеология'}</div>
+                  </div>
+                  {editFaction.is_paid
+                    ? <span className="ml-auto font-display text-xs px-2 py-0.5 bg-primary/20 text-primary border border-primary/30 uppercase tracking-wider">Платная</span>
+                    : <span className="ml-auto font-display text-xs px-2 py-0.5 bg-green-900/30 text-green-400 border border-green-700/40 uppercase tracking-wider">Бесплатная</span>
+                  }
+                </div>
+              </div>
+
+              <div className="mt-6 flex gap-3">
+                <Button onClick={handleSaveFaction} disabled={savingFaction} className="flex-1 font-display uppercase tracking-widest">
+                  {savingFaction ? <Icon name="Loader" size={16} className="mr-2 animate-spin" /> : <Icon name="Save" size={16} className="mr-2" />}
+                  {isNewFaction ? 'Создать' : 'Сохранить'}
+                </Button>
+                <Button variant="outline" onClick={closeEditFaction} className="font-display uppercase tracking-widest border-border">Отмена</Button>
               </div>
             </div>
           </div>

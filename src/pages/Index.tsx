@@ -88,64 +88,19 @@ const LORE_CHAPTERS = [
   },
 ];
 
-const FACTIONS = [
-  {
-    name: 'Долг',
-    icon: 'Shield',
-    color: 'text-red-400',
-    alignment: 'Порядок',
-    desc: 'Военизированная группировка, цель которой — уничтожение Зоны. Железная дисциплина, тяжёлое вооружение, нулевая терпимость к мародёрам.',
-  },
-  {
-    name: 'Свобода',
-    icon: 'Wind',
-    color: 'text-green-400',
-    alignment: 'Хаос',
-    desc: 'Анархисты Зоны. Убеждены, что Зона — это дар человечеству. Открытый доступ к аномалиям для всех. Вечная война с Долгом.',
-  },
-  {
-    name: 'ОКСОП',
-    icon: 'Eye',
-    color: 'text-blue-400',
-    alignment: 'Закон',
-    desc: 'Отряд контроля и соблюдения общественного порядка. Официальная силовая структура, охраняющая периметр и патрулирующая Зону.',
-  },
-  {
-    name: 'Монолит',
-    icon: 'Triangle',
-    color: 'text-purple-400',
-    alignment: 'Фанатизм',
-    desc: 'Загадочная секта, поклоняющаяся Монолиту — источнику исполнения желаний. Безжалостны, безрассудны и смертоносны. Никто не знает, кем они были раньше.',
-  },
-  {
-    name: 'Грех',
-    icon: 'Skull',
-    color: 'text-orange-400',
-    alignment: 'Тьма',
-    desc: 'Тайная организация с мистическими ритуалами. Торгуют запрещёнными артефактами и информацией. Встреча с ними — дурной знак.',
-  },
-  {
-    name: 'Бандиты',
-    icon: 'Flame',
-    color: 'text-yellow-400',
-    alignment: 'Мародёрство',
-    desc: 'Отбросы Зоны. Грабят одиночек, торгуют краденым и устраивают засады. Ненавидимы всеми, но живут дольше, чем хотелось бы.',
-  },
-  {
-    name: 'Чистое Небо',
-    icon: 'CloudSun',
-    color: 'text-cyan-400',
-    alignment: 'Исследование',
-    desc: 'Наёмная группировка, стремящаяся остановить расширение Зоны. Изучают аномалии, охотятся за артефактами и противостоят выбросам.',
-  },
-  {
-    name: 'Учёные',
-    icon: 'FlaskConical',
-    color: 'text-lime-400',
-    alignment: 'Наука',
-    desc: 'Гражданские исследователи под эгидой института «Агропром». Не воюют, но знают о Зоне больше всех. Их данные стоят дороже любого артефакта.',
-  },
-];
+const FACTIONS_URL = 'https://functions.poehali.dev/96537813-a83b-4c40-8239-6bea84d441f5';
+
+interface FactionItem {
+  id: number;
+  name: string;
+  icon: string;
+  color: string;
+  alignment: string;
+  description: string;
+  is_paid: boolean;
+  sort_order: number;
+  is_active: boolean;
+}
 
 const NEWS_URL = 'https://functions.poehali.dev/b6a922f6-e4a1-4920-afa6-ff75d1e0783e';
 
@@ -201,11 +156,16 @@ export default function Index() {
   const [openLore, setOpenLore] = useState<string | null>(null);
   const { user, purchases, loading: authLoading, loginWithSteam, logout } = useAuth();
   const [news, setNews] = useState<NewsItem[]>([]);
+  const [factions, setFactions] = useState<FactionItem[]>([]);
 
   useEffect(() => {
     fetch(NEWS_URL)
       .then(r => r.json())
       .then(d => setNews(d.news || []))
+      .catch(() => {});
+    fetch(FACTIONS_URL)
+      .then(r => r.json())
+      .then(d => setFactions(d.factions || []))
       .catch(() => {});
   }, []);
 
@@ -406,19 +366,25 @@ export default function Index() {
             Выбери фракцию — узнай её цели, базу и боевой стиль.
           </p>
           <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {FACTIONS.map((f) => {
-              const isOpen = selectedFaction === f.name;
+            {factions.map((f) => {
+              const isOpen = selectedFaction === String(f.id);
               return (
-                <div key={f.name} className="flex flex-col">
+                <div key={f.id} className="flex flex-col">
                   <button
-                    onClick={() => setSelectedFaction(isOpen ? null : f.name)}
+                    onClick={() => setSelectedFaction(isOpen ? null : String(f.id))}
                     className={`grain rust-border group flex items-center gap-4 bg-card p-6 text-left transition-all ${isOpen ? 'border-primary/70 bg-card' : 'hover:border-primary/40'}`}
                   >
                     <div className={`flex h-14 w-14 shrink-0 items-center justify-center bg-card border border-border transition-colors ${isOpen ? 'bg-primary border-primary' : 'group-hover:bg-primary/10'}`}>
                       <Icon name={f.icon} size={28} className={isOpen ? 'text-primary-foreground' : f.color} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-display text-2xl font-bold uppercase tracking-wide">{f.name}</div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-display text-2xl font-bold uppercase tracking-wide">{f.name}</span>
+                        {f.is_paid
+                          ? <span className="font-display text-xs uppercase tracking-wider px-2 py-0.5 bg-primary/20 text-primary border border-primary/30">Платная</span>
+                          : <span className="font-display text-xs uppercase tracking-wider px-2 py-0.5 bg-green-900/30 text-green-400 border border-green-700/40">Бесплатная</span>
+                        }
+                      </div>
                       <div className={`mt-1 font-display text-xs uppercase tracking-widest ${f.color}`}>{f.alignment}</div>
                     </div>
                     <Icon
@@ -429,7 +395,7 @@ export default function Index() {
                   </button>
                   {isOpen && (
                     <div className="grain border border-t-0 border-primary/40 bg-card/80 p-6 animate-fade-in">
-                      <p className="font-body text-muted-foreground">{f.desc}</p>
+                      <p className="font-body text-muted-foreground">{f.description}</p>
                     </div>
                   )}
                 </div>
