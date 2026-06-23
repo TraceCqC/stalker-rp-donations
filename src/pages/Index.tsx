@@ -265,13 +265,21 @@ export default function Index() {
             )}
             {!authLoading && (
               user ? (
-                <button onClick={() => setCabinetOpen(true)} className="flex items-center gap-2 border border-border bg-card px-3 py-1.5 transition-colors hover:border-primary">
-                  {user.avatar_url
-                    ? <img src={user.avatar_url} alt="" className="h-6 w-6 object-cover" />
-                    : <Icon name="User" size={16} className="text-primary" />
-                  }
-                  <span className="font-display text-sm uppercase tracking-wider">{user.username}</span>
-                </button>
+                <>
+                  {user.is_admin && (
+                    <a href="/admin" className="flex items-center gap-2 border border-primary/60 bg-primary/10 px-3 py-1.5 font-display text-sm uppercase tracking-wider text-primary transition-colors hover:border-primary hover:bg-primary/20">
+                      <Icon name="ShieldCheck" size={15} />
+                      Админ
+                    </a>
+                  )}
+                  <button onClick={() => setCabinetOpen(true)} className="flex items-center gap-2 border border-border bg-card px-3 py-1.5 transition-colors hover:border-primary">
+                    {user.avatar_url
+                      ? <img src={user.avatar_url} alt="" className="h-6 w-6 object-cover" />
+                      : <Icon name="User" size={16} className="text-primary" />
+                    }
+                    <span className="font-display text-sm uppercase tracking-wider">{user.username}</span>
+                  </button>
+                </>
               ) : (
                 <>
                   <a href="/shop" className="hidden md:flex items-center gap-2 border border-primary/40 bg-card px-3 py-1.5 font-display text-sm uppercase tracking-wider text-primary transition-colors hover:border-primary hover:bg-primary/10">
