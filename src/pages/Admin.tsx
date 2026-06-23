@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 
 const ADMIN_URL = 'https://functions.poehali.dev/b71dc419-3bb9-4658-8144-bbc49fb591dd';
 const NEWS_URL = 'https://functions.poehali.dev/b6a922f6-e4a1-4920-afa6-ff75d1e0783e';
+const UPLOAD_URL = 'https://functions.poehali.dev/085b509e-630e-4156-9891-b5c5fbf3b537';
 
 interface ShopItem {
   id: number;
@@ -18,6 +19,7 @@ interface ShopItem {
   is_popular: boolean;
   sort_order: number;
   is_active: boolean;
+  image_url: string | null;
 }
 
 interface NewsItem {
@@ -39,6 +41,7 @@ const EMPTY_ITEM: Omit<ShopItem, 'id'> = {
   is_popular: false,
   sort_order: 0,
   is_active: true,
+  image_url: null,
 };
 
 const EMPTY_NEWS: Omit<NewsItem, 'id'> = {
@@ -86,6 +89,7 @@ export default function Admin() {
   const [isNew, setIsNew] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   // News state
   const [news, setNews] = useState<NewsItem[]>([]);
@@ -125,6 +129,30 @@ export default function Admin() {
   const openNew = () => { setIsNew(true); setEditItem({ id: 0, ...EMPTY_ITEM }); };
   const openEdit = (item: ShopItem) => { setIsNew(false); setEditItem({ ...item }); };
   const closeEdit = () => setEditItem(null);
+
+  const handleImageUpload = async (file: File) => {
+    if (!editItem) return;
+    setUploadingImage(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const base64 = (e.target?.result as string).split(',')[1];
+        const res = await fetch(UPLOAD_URL, {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify({ data: base64, content_type: file.type }),
+        });
+        const data = await res.json();
+        if (data.url) setEditItem((prev) => prev ? { ...prev, image_url: data.url } : prev);
+        else toast({ title: 'Ошибка загрузки', variant: 'destructive' });
+        setUploadingImage(false);
+      };
+      reader.readAsDataURL(file);
+    } catch {
+      toast({ title: 'Ошибка загрузки', variant: 'destructive' });
+      setUploadingImage(false);
+    }
+  };
 
   const handleSave = async () => {
     if (!editItem) return;
@@ -305,8 +333,11 @@ export default function Admin() {
                       <div className="space-y-2">
                         {cat.items.map((item) => (
                           <div key={item.id} className={`grain rust-border flex flex-col sm:flex-row sm:items-center gap-4 bg-card p-5 transition-all ${!item.is_active ? 'opacity-50' : ''}`}>
-                            <div className="flex h-11 w-11 shrink-0 items-center justify-center bg-primary/10 text-primary">
-                              <Icon name={CAT_ICON[item.category] ?? 'Package'} size={22} />
+                            <div className="h-11 w-11 shrink-0 overflow-hidden">
+                              {item.image_url
+                                ? <img src={item.image_url} alt="" className="h-full w-full object-cover" />
+                                : <div className="flex h-full w-full items-center justify-center bg-primary/10 text-primary"><Icon name={CAT_ICON[item.category] ?? 'Package'} size={22} /></div>
+                              }
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 flex-wrap">
@@ -465,6 +496,38 @@ export default function Admin() {
                     <input type="checkbox" className="accent-primary" checked={editItem.is_active} onChange={(e) => setEditItem({ ...editItem, is_active: e.target.checked })} />
                     <span className="font-display text-xs uppercase tracking-widest">Активен</span>
                   </label>
+                </div>
+
+                {/* Image upload */}
+                <div>
+                  <label className="mb-1.5 block font-display text-xs uppercase tracking-widest text-muted-foreground">Картинка товара</label>
+                  {editItem.image_url ? (
+                    <div className="relative">
+                      <img src={editItem.image_url} alt="" className="w-full h-40 object-cover border border-border" />
+                      <button
+                        onClick={() => setEditItem({ ...editItem, image_url: null })}
+                        className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center bg-black/60 text-white hover:bg-destructive transition-colors"
+                        title="Удалить картинку"
+                      >
+                        <Icon name="X" size={14} />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className={`flex flex-col items-center justify-center gap-2 border border-dashed border-border bg-background h-28 cursor-pointer hover:border-primary/60 transition-colors ${uploadingImage ? 'opacity-60 pointer-events-none' : ''}`}>
+                      {uploadingImage
+                        ? <Icon name="Loader" size={24} className="animate-spin text-primary" />
+                        : <Icon name="ImagePlus" size={24} className="text-muted-foreground" />}
+                      <span className="font-display text-xs uppercase tracking-widest text-muted-foreground">
+                        {uploadingImage ? 'Загружаю...' : 'Выбрать файл'}
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); }}
+                      />
+                    </label>
+                  )}
                 </div>
               </div>
               <div className="mt-6 flex gap-3">

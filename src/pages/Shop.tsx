@@ -18,6 +18,7 @@ interface ShopItem {
   badge: string | null;
   is_popular: boolean;
   sort_order: number;
+  image_url: string | null;
 }
 
 const CATEGORIES = [
@@ -185,11 +186,20 @@ export default function Shop() {
                   </div>
                 )}
 
-                <div className="p-6 flex-1">
-                  {/* Icon */}
-                  <div className={`mb-5 flex h-14 w-14 items-center justify-center bg-primary/10 text-primary`}>
-                    <Icon name={CAT_ICON[item.category] ?? 'Package'} size={30} />
+                {/* Image */}
+                {item.image_url && (
+                  <div className="w-full h-48 overflow-hidden border-b border-border">
+                    <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
                   </div>
+                )}
+
+                <div className="p-6 flex-1">
+                  {/* Icon (only if no image) */}
+                  {!item.image_url && (
+                    <div className="mb-5 flex h-14 w-14 items-center justify-center bg-primary/10 text-primary">
+                      <Icon name={CAT_ICON[item.category] ?? 'Package'} size={30} />
+                    </div>
+                  )}
 
                   {/* Category label */}
                   <p className="font-display text-xs uppercase tracking-[0.3em] text-primary mb-1">

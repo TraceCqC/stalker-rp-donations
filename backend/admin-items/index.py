@@ -52,6 +52,7 @@ def row_to_item(r) -> dict:
         'description': r[3], 'price': float(r[4]),
         'badge': r[5], 'is_popular': r[6],
         'sort_order': r[7], 'is_active': r[8],
+        'image_url': r[9],
     }
 
 
@@ -73,7 +74,7 @@ def handler(event: dict, context) -> dict:
 
     if method == 'GET':
         cur.execute(
-            f"""SELECT id, category, name, description, price, badge, is_popular, sort_order, is_active
+            f"""SELECT id, category, name, description, price, badge, is_popular, sort_order, is_active, image_url
                 FROM {SCHEMA}.shop_items ORDER BY category, sort_order"""
         )
         items = [row_to_item(r) for r in cur.fetchall()]
@@ -83,13 +84,13 @@ def handler(event: dict, context) -> dict:
     if method == 'POST':
         cur.execute(
             f"""INSERT INTO {SCHEMA}.shop_items
-                (category, name, description, price, badge, is_popular, sort_order, is_active)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                RETURNING id, category, name, description, price, badge, is_popular, sort_order, is_active""",
+                (category, name, description, price, badge, is_popular, sort_order, is_active, image_url)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING id, category, name, description, price, badge, is_popular, sort_order, is_active, image_url""",
             (body.get('category'), body.get('name'), body.get('description'),
              body.get('price', 0), body.get('badge') or None,
              body.get('is_popular', False), body.get('sort_order', 0),
-             body.get('is_active', True)),
+             body.get('is_active', True), body.get('image_url') or None),
         )
         item = row_to_item(cur.fetchone())
         conn.commit(); cur.close(); conn.close()
@@ -103,13 +104,13 @@ def handler(event: dict, context) -> dict:
         cur.execute(
             f"""UPDATE {SCHEMA}.shop_items
                 SET category=%s, name=%s, description=%s, price=%s,
-                    badge=%s, is_popular=%s, sort_order=%s, is_active=%s
+                    badge=%s, is_popular=%s, sort_order=%s, is_active=%s, image_url=%s
                 WHERE id=%s
-                RETURNING id, category, name, description, price, badge, is_popular, sort_order, is_active""",
+                RETURNING id, category, name, description, price, badge, is_popular, sort_order, is_active, image_url""",
             (body.get('category'), body.get('name'), body.get('description'),
              body.get('price', 0), body.get('badge') or None,
              body.get('is_popular', False), body.get('sort_order', 0),
-             body.get('is_active', True), int(item_id)),
+             body.get('is_active', True), body.get('image_url') or None, int(item_id)),
         )
         row = cur.fetchone()
         conn.commit(); cur.close(); conn.close()

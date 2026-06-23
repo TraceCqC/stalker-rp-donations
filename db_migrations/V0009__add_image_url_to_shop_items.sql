@@ -1,0 +1,1 @@
+ALTER TABLE t_p38734199_stalker_rp_donations.shop_items ADD COLUMN image_url TEXT DEFAULT NULL;

@@ -24,7 +24,7 @@ def handler(event: dict, context) -> dict:
     conn = get_db()
     cur = conn.cursor()
     cur.execute(
-        f"""SELECT id, category, name, description, price, badge, is_popular, sort_order
+        f"""SELECT id, category, name, description, price, badge, is_popular, sort_order, image_url
             FROM {SCHEMA}.shop_items
             WHERE is_active = TRUE
             ORDER BY category, sort_order"""
@@ -43,6 +43,7 @@ def handler(event: dict, context) -> dict:
             'badge': r[5],
             'is_popular': r[6],
             'sort_order': r[7],
+            'image_url': r[8],
         }
         for r in rows
     ]
