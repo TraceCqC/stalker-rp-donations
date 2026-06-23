@@ -24,7 +24,7 @@ const App = () => (
           <Route path="/cabinet" element={<Cabinet />} />
           <Route path="/shop" element={<Shop />} />
           <Route path="/admin" element={<Admin />} />
-          <Route path="/api/steam-callback" element={<SteamCallback />} />
+          <Route path="/steam-auth" element={<SteamCallback />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
