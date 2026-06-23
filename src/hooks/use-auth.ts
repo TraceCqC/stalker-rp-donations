@@ -23,6 +23,7 @@ export interface User {
   username: string;
   avatar_url: string;
   member_since: string;
+  is_admin: boolean;
 }
 
 export function getSessionId(): string | null {
