@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 const AUTH_ME_URL = 'https://functions.poehali.dev/085b5268-60a1-42ec-92f7-19cb411dcd7d';
 const LOGOUT_URL = 'https://functions.poehali.dev/3f106363-957e-4cd7-9dee-5468f71d6997';
 
-const SITE_URL = 'https://nightzone.poehali.dev';
+const SITE_URL = 'https://nightzone.shop';
 const STEAM_CALLBACK_URL = `${SITE_URL}/steam-auth`;
 
 const SESSION_KEY = 'nz_session_id';
