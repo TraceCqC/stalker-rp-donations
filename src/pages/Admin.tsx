@@ -30,6 +30,7 @@ interface NewsItem {
   tag: string;
   text: string;
   sort_order: number;
+  image_url: string | null;
 }
 
 const EMPTY_ITEM: Omit<ShopItem, 'id'> = {
@@ -51,6 +52,7 @@ const EMPTY_NEWS: Omit<NewsItem, 'id'> = {
   tag: 'Контент',
   text: '',
   sort_order: 0,
+  image_url: null,
 };
 
 const TAGS = ['Контент', 'Баланс', 'Фикс', 'Ивент', 'Обновление'];
@@ -98,6 +100,7 @@ export default function Admin() {
   const [isNewNews, setIsNewNews] = useState(false);
   const [savingNews, setSavingNews] = useState(false);
   const [deletingNewsId, setDeletingNewsId] = useState<number | null>(null);
+  const [uploadingNewsImage, setUploadingNewsImage] = useState(false);
 
   const fetchItems = () => {
     setLoading(true);
@@ -186,6 +189,30 @@ export default function Admin() {
   const openNewNews = () => { setIsNewNews(true); setEditNews({ id: 0, ...EMPTY_NEWS }); };
   const openEditNews = (n: NewsItem) => { setIsNewNews(false); setEditNews({ ...n }); };
   const closeEditNews = () => setEditNews(null);
+
+  const handleNewsImageUpload = async (file: File) => {
+    if (!editNews) return;
+    setUploadingNewsImage(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const base64 = (e.target?.result as string).split(',')[1];
+        const res = await fetch(UPLOAD_URL, {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify({ data: base64, content_type: file.type }),
+        });
+        const data = await res.json();
+        if (data.url) setEditNews((prev) => prev ? { ...prev, image_url: data.url } : prev);
+        else toast({ title: 'Ошибка загрузки', variant: 'destructive' });
+        setUploadingNewsImage(false);
+      };
+      reader.readAsDataURL(file);
+    } catch {
+      toast({ title: 'Ошибка загрузки', variant: 'destructive' });
+      setUploadingNewsImage(false);
+    }
+  };
 
   const handleSaveNews = async () => {
     if (!editNews) return;
@@ -590,6 +617,38 @@ export default function Admin() {
                   <label className="mb-1.5 block font-display text-xs uppercase tracking-widest text-muted-foreground">Порядок</label>
                   <input type="number" className="w-full border border-border bg-background px-3 py-2 font-body text-sm text-foreground outline-none focus:border-primary"
                     value={editNews.sort_order} onChange={(e) => setEditNews({ ...editNews, sort_order: parseInt(e.target.value) || 0 })} />
+                </div>
+
+                {/* Image upload */}
+                <div>
+                  <label className="mb-1.5 block font-display text-xs uppercase tracking-widest text-muted-foreground">Картинка новости</label>
+                  {editNews.image_url ? (
+                    <div className="relative">
+                      <img src={editNews.image_url} alt="" className="w-full h-40 object-cover border border-border" />
+                      <button
+                        onClick={() => setEditNews({ ...editNews, image_url: null })}
+                        className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center bg-black/60 text-white hover:bg-destructive transition-colors"
+                        title="Удалить картинку"
+                      >
+                        <Icon name="X" size={14} />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className={`flex flex-col items-center justify-center gap-2 border border-dashed border-border bg-background h-28 cursor-pointer hover:border-primary/60 transition-colors ${uploadingNewsImage ? 'opacity-60 pointer-events-none' : ''}`}>
+                      {uploadingNewsImage
+                        ? <Icon name="Loader" size={24} className="animate-spin text-primary" />
+                        : <Icon name="ImagePlus" size={24} className="text-muted-foreground" />}
+                      <span className="font-display text-xs uppercase tracking-widest text-muted-foreground">
+                        {uploadingNewsImage ? 'Загружаю...' : 'Выбрать файл'}
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleNewsImageUpload(f); }}
+                      />
+                    </label>
+                  )}
                 </div>
               </div>
               <div className="mt-6 flex gap-3">

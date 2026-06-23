@@ -47,7 +47,7 @@ def row_to_news(r) -> dict:
     return {
         'id': r[0], 'ver': r[1], 'date': r[2],
         'title': r[3], 'tag': r[4], 'text': r[5],
-        'sort_order': r[6],
+        'sort_order': r[6], 'image_url': r[7],
     }
 
 
@@ -65,7 +65,7 @@ def handler(event: dict, context) -> dict:
 
     if method == 'GET':
         cur.execute(
-            f"SELECT id, ver, date, title, tag, text, sort_order FROM {SCHEMA}.news ORDER BY sort_order, id"
+            f"SELECT id, ver, date, title, tag, text, sort_order, image_url FROM {SCHEMA}.news ORDER BY sort_order, id"
         )
         news = [row_to_news(r) for r in cur.fetchall()]
         cur.close(); conn.close()
@@ -77,11 +77,12 @@ def handler(event: dict, context) -> dict:
 
     if method == 'POST':
         cur.execute(
-            f"""INSERT INTO {SCHEMA}.news (ver, date, title, tag, text, sort_order)
-                VALUES (%s, %s, %s, %s, %s, %s)
-                RETURNING id, ver, date, title, tag, text, sort_order""",
+            f"""INSERT INTO {SCHEMA}.news (ver, date, title, tag, text, sort_order, image_url)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                RETURNING id, ver, date, title, tag, text, sort_order, image_url""",
             (body.get('ver'), body.get('date'), body.get('title'),
-             body.get('tag'), body.get('text'), body.get('sort_order', 0)),
+             body.get('tag'), body.get('text'), body.get('sort_order', 0),
+             body.get('image_url') or None),
         )
         item = row_to_news(cur.fetchone())
         conn.commit(); cur.close(); conn.close()
@@ -94,11 +95,12 @@ def handler(event: dict, context) -> dict:
             return {'statusCode': 400, 'headers': CORS, 'body': json.dumps({'error': 'id required'})}
         cur.execute(
             f"""UPDATE {SCHEMA}.news
-                SET ver=%s, date=%s, title=%s, tag=%s, text=%s, sort_order=%s
+                SET ver=%s, date=%s, title=%s, tag=%s, text=%s, sort_order=%s, image_url=%s
                 WHERE id=%s
-                RETURNING id, ver, date, title, tag, text, sort_order""",
+                RETURNING id, ver, date, title, tag, text, sort_order, image_url""",
             (body.get('ver'), body.get('date'), body.get('title'),
-             body.get('tag'), body.get('text'), body.get('sort_order', 0), int(news_id)),
+             body.get('tag'), body.get('text'), body.get('sort_order', 0),
+             body.get('image_url') or None, int(news_id)),
         )
         row = cur.fetchone()
         conn.commit(); cur.close(); conn.close()

@@ -157,6 +157,7 @@ interface NewsItem {
   tag: string;
   text: string;
   sort_order: number;
+  image_url: string | null;
 }
 
 const SHOP: Record<string, { name: string; price: number; icon: string; desc: string }[]> = {
@@ -481,19 +482,26 @@ export default function Index() {
           <SectionTitle icon="Radio" sub="Сводки с Зоны" title="Новости и патчи" />
           <div className="mt-12 space-y-5">
             {news.map((n) => (
-              <div key={n.id} className="grain rust-border group flex flex-col gap-4 bg-card p-6 transition-all hover:border-primary/50 md:flex-row md:items-center">
-                <div className="flex shrink-0 flex-col gap-2 md:w-48">
-                  <span className="font-display text-xl font-bold uppercase tracking-wide text-primary">{n.ver}</span>
-                  <span className="flex items-center gap-2 font-body text-sm text-muted-foreground">
-                    <Icon name="Calendar" size={14} /> {n.date}
-                  </span>
-                  <span className="w-fit border border-accent/50 bg-accent/10 px-2 py-0.5 font-display text-xs uppercase tracking-wider text-accent-foreground">
-                    {n.tag}
-                  </span>
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-display text-xl font-semibold uppercase tracking-wide">{n.title}</h3>
-                  <p className="mt-2 font-body text-muted-foreground">{n.text}</p>
+              <div key={n.id} className="grain rust-border group flex flex-col gap-4 bg-card transition-all hover:border-primary/50 md:flex-row md:items-stretch overflow-hidden">
+                {n.image_url && (
+                  <div className="md:w-48 shrink-0 overflow-hidden">
+                    <img src={n.image_url} alt={n.title} className="w-full h-40 md:h-full object-cover" />
+                  </div>
+                )}
+                <div className="flex flex-col gap-4 p-6 md:flex-row md:items-center flex-1">
+                  <div className="flex shrink-0 flex-col gap-2 md:w-48">
+                    <span className="font-display text-xl font-bold uppercase tracking-wide text-primary">{n.ver}</span>
+                    <span className="flex items-center gap-2 font-body text-sm text-muted-foreground">
+                      <Icon name="Calendar" size={14} /> {n.date}
+                    </span>
+                    <span className="w-fit border border-accent/50 bg-accent/10 px-2 py-0.5 font-display text-xs uppercase tracking-wider text-accent-foreground">
+                      {n.tag}
+                    </span>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-display text-xl font-semibold uppercase tracking-wide">{n.title}</h3>
+                    <p className="mt-2 font-body text-muted-foreground">{n.text}</p>
+                  </div>
                 </div>
               </div>
             ))}
