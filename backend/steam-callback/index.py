@@ -1,4 +1,4 @@
-"""Обработка ответа от Steam OpenID, создание сессии и редирект в личный кабинет"""
+"""Обработка ответа от Steam OpenID, создание сессии и возврат session_id в JSON"""
 import os
 import re
 import secrets
@@ -12,6 +12,7 @@ CORS = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
+    'Content-Type': 'application/json',
 }
 
 SCHEMA = 't_p38734199_stalker_rp_donations'
@@ -32,7 +33,7 @@ def verify_openid(params: dict) -> str | None:
         data=data,
         method='POST',
     )
-    with urllib.request.urlopen(req, timeout=10) as resp:
+    with urllib.request.urlopen(req, timeout=15) as resp:
         body = resp.read().decode()
 
     if 'is_valid:true' not in body:
@@ -71,23 +72,14 @@ def handler(event: dict, context) -> dict:
     if event.get('httpMethod') == 'OPTIONS':
         return {'statusCode': 200, 'headers': CORS, 'body': ''}
 
-    site_url = os.environ.get('SITE_URL', 'https://nightzone.poehali.dev')
     params = event.get('queryStringParameters') or {}
 
     if not params.get('openid.mode'):
-        return {
-            'statusCode': 302,
-            'headers': {**CORS, 'Location': f'{site_url}/?auth_error=1'},
-            'body': '',
-        }
+        return {'statusCode': 400, 'headers': CORS, 'body': json.dumps({'error': 'missing_openid_params'})}
 
     steam_id = verify_openid(params)
     if not steam_id:
-        return {
-            'statusCode': 302,
-            'headers': {**CORS, 'Location': f'{site_url}/?auth_error=1'},
-            'body': '',
-        }
+        return {'statusCode': 401, 'headers': CORS, 'body': json.dumps({'error': 'invalid_openid'})}
 
     profile = get_steam_profile(steam_id)
     session_id = secrets.token_hex(32)
@@ -117,10 +109,7 @@ def handler(event: dict, context) -> dict:
     conn.close()
 
     return {
-        'statusCode': 302,
-        'headers': {
-            **CORS,
-            'Location': f'{site_url}/api/steam-callback#cabinet?sid={session_id}',
-        },
-        'body': '',
+        'statusCode': 200,
+        'headers': CORS,
+        'body': json.dumps({'session_id': session_id}),
     }

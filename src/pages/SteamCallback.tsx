@@ -1,30 +1,52 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { setSessionId } from '@/hooks/use-auth';
 
 const CALLBACK_URL = 'https://functions.poehali.dev/edbd3d47-b8f0-4f79-beaf-4ba48d8f3bf6';
 
 export default function SteamCallback() {
+  const [status, setStatus] = useState<'loading' | 'error'>('loading');
+
   useEffect(() => {
-    // После редиректа с облачной функции приходим сюда с хэшом #cabinet?sid=...
-    const hash = window.location.hash;
-    if (hash.startsWith('#cabinet')) {
-      const query = hash.replace('#cabinet?', '').replace('#cabinet', '');
-      const params = new URLSearchParams(query);
-      const sid = params.get('sid');
-      if (sid) {
-        setSessionId(sid);
-      }
-      window.location.replace('/');
+    const search = window.location.search;
+    const params = new URLSearchParams(search);
+
+    // Если нет openid-параметров — что-то пошло не так
+    if (!params.get('openid.mode')) {
+      setStatus('error');
+      setTimeout(() => window.location.replace('/'), 2000);
       return;
     }
-    // Первый проход — проксируем Steam-параметры на облачную функцию
-    const params = window.location.search;
-    window.location.replace(`${CALLBACK_URL}${params}`);
+
+    // Вызываем бэкенд через fetch — ждём JSON с session_id
+    fetch(`${CALLBACK_URL}${search}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.session_id) {
+          setSessionId(data.session_id);
+          window.location.replace('/');
+        } else {
+          setStatus('error');
+          setTimeout(() => window.location.replace('/'), 2000);
+        }
+      })
+      .catch(() => {
+        setStatus('error');
+        setTimeout(() => window.location.replace('/'), 2000);
+      });
   }, []);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background text-foreground">
-      <p className="font-display text-sm uppercase tracking-widest text-muted-foreground">Входим в Зону...</p>
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background text-foreground gap-4">
+      {status === 'loading' ? (
+        <>
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          <p className="font-display text-sm uppercase tracking-widest text-muted-foreground">Входим в Зону...</p>
+        </>
+      ) : (
+        <>
+          <p className="font-display text-sm uppercase tracking-widest text-destructive">Ошибка входа. Возвращаемся...</p>
+        </>
+      )}
     </div>
   );
 }
