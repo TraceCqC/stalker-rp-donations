@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react';
 
 const AUTH_ME_URL = 'https://functions.poehali.dev/085b5268-60a1-42ec-92f7-19cb411dcd7d';
 const LOGOUT_URL = 'https://functions.poehali.dev/3f106363-957e-4cd7-9dee-5468f71d6997';
-const STEAM_LOGIN_URL = 'https://functions.poehali.dev/c009e5f0-9192-4bd4-b1f1-079159a97c98';
+
+const SITE_URL = 'https://nightzone.poehali.dev';
+const STEAM_CALLBACK_URL = `${SITE_URL}/api/steam-callback`;
 
 const SESSION_KEY = 'nz_session_id';
 
@@ -63,7 +65,15 @@ export function useAuth() {
   }, []);
 
   const loginWithSteam = () => {
-    window.location.href = STEAM_LOGIN_URL;
+    const params = new URLSearchParams({
+      'openid.ns': 'http://specs.openid.net/auth/2.0',
+      'openid.mode': 'checkid_setup',
+      'openid.return_to': STEAM_CALLBACK_URL,
+      'openid.realm': SITE_URL,
+      'openid.identity': 'http://specs.openid.net/auth/2.0/identifier_select',
+      'openid.claimed_id': 'http://specs.openid.net/auth/2.0/identifier_select',
+    });
+    window.location.href = `https://steamcommunity.com/openid/login?${params.toString()}`;
   };
 
   const logout = async () => {
