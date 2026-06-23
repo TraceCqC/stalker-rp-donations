@@ -51,8 +51,12 @@ export function useAuth() {
     fetch(AUTH_ME_URL, {
       headers: { 'X-Session-Id': sid },
     })
-      .then((r) => r.json())
+      .then((r) => {
+        if (r.status === 401) { clearSessionId(); return null; }
+        return r.json();
+      })
       .then((data) => {
+        if (!data) return;
         if (data.user) {
           setUser(data.user);
           setPurchases(data.purchases || []);
