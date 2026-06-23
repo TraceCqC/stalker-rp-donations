@@ -424,27 +424,27 @@ export default function Index() {
         </div>
         <div className="container relative px-4">
           <SectionTitle icon="Wifi" sub="Точка входа" title="IP для подключения" />
-          <div className="mx-auto mt-12 max-w-2xl">
+          <div className="mx-auto mt-12 max-w-3xl">
             <div className="hazard-stripe h-3 w-full" />
-            <div className="grain rust-border bg-card p-8 md:p-12 text-center">
-              <Icon name="ServerCog" size={48} className="mx-auto text-primary" />
+            <div className="grain rust-border bg-card p-8 md:p-16 text-center">
+              <Icon name="ServerCog" size={52} className="mx-auto text-primary" />
               <p className="mt-4 font-body text-sm uppercase tracking-widest text-muted-foreground">Адрес сервера DayZ</p>
-              <div className="mt-4 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-                <code className="font-display text-2xl font-semibold tracking-widest text-primary md:text-3xl">{SERVER_IP}</code>
-                <Button onClick={copyIp} variant="outline" className="border-primary/40 font-display uppercase">
+              <div className="mt-6 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+                <code className="font-display text-2xl font-semibold tracking-widest text-primary lg:text-4xl">{SERVER_IP}</code>
+                <Button onClick={copyIp} variant="outline" className="border-primary/40 font-display uppercase shrink-0">
                   <Icon name="Copy" size={16} className="mr-2" /> Копировать
                 </Button>
               </div>
-              <div className="mt-8 grid gap-4 text-left sm:grid-cols-3">
+              <div className="mt-10 grid gap-4 text-left sm:grid-cols-3">
                 {[
                   ['1', 'Установи DayZ', 'Купи игру в Steam'],
                   ['2', 'Добавь моды', 'Через DayZ Launcher'],
                   ['3', 'Вставь IP', 'И заходи в Зону'],
                 ].map(([n, t, d]) => (
-                  <div key={n} className="border border-border bg-background/50 p-4">
-                    <div className="font-display text-3xl font-bold text-primary/40">{n}</div>
-                    <div className="mt-1 font-display uppercase tracking-wide">{t}</div>
-                    <div className="font-body text-sm text-muted-foreground">{d}</div>
+                  <div key={n} className="border border-border bg-background/50 p-5">
+                    <div className="font-display text-4xl font-bold text-primary/40">{n}</div>
+                    <div className="mt-2 font-display uppercase tracking-wide">{t}</div>
+                    <div className="mt-1 font-body text-sm text-muted-foreground">{d}</div>
                   </div>
                 ))}
               </div>
