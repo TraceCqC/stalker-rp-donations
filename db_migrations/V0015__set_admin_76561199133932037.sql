@@ -1,0 +1,1 @@
+UPDATE t_p38734199_stalker_rp_donations.users SET is_admin = true WHERE steam_id = '76561199133932037';
