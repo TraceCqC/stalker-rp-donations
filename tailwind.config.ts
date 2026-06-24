@@ -13,10 +13,28 @@ export default {
 	theme: {
 		container: {
 			center: true,
-			padding: '2rem',
+			padding: {
+				DEFAULT: '1rem',
+				sm: '1.5rem',
+				md: '2rem',
+				xl: '2rem',
+				'2xl': '3rem',
+				'3xl': '4rem',
+			},
 			screens: {
-				'2xl': '1400px'
+				'2xl': '1536px',
+				'3xl': '1920px',
+				'4xl': '2400px',
 			}
+		},
+		screens: {
+			sm: '640px',
+			md: '768px',
+			lg: '1024px',
+			xl: '1280px',
+			'2xl': '1536px',
+			'3xl': '1920px',
+			'4xl': '2560px',
 		},
 		extend: {
 			fontFamily: {

@@ -232,12 +232,13 @@ export default function Index() {
     <div className="min-h-screen bg-background text-foreground selection:bg-primary selection:text-primary-foreground">
       {/* HEADER */}
       <header className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-background/85 backdrop-blur-md">
-        <div className="container flex h-16 items-center justify-between px-4">
+        <div className="container flex h-16 3xl:h-20 items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center bg-primary text-primary-foreground animate-radiate">
-              <Icon name="Radiation" size={22} />
+            <div className="flex h-9 w-9 3xl:h-11 3xl:w-11 items-center justify-center bg-primary text-primary-foreground animate-radiate">
+              <Icon name="Radiation" size={22} className="3xl:hidden" />
+              <Icon name="Radiation" size={26} className="hidden 3xl:block" />
             </div>
-            <span className="font-display text-xl font-bold tracking-widest uppercase">
+            <span className="font-display text-xl 3xl:text-2xl font-bold tracking-widest uppercase">
               Night <span className="text-primary">Zone</span>
             </span>
           </div>
@@ -246,7 +247,7 @@ export default function Index() {
               <button
                 key={n.id}
                 onClick={() => scrollTo(n.id)}
-                className={`flex items-center gap-2 px-4 py-2 font-display text-sm uppercase tracking-wider transition-colors ${
+                className={`flex items-center gap-2 px-4 py-2 3xl:px-6 3xl:py-3 font-display text-sm 3xl:text-base uppercase tracking-wider transition-colors ${
                   active === n.id ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -300,40 +301,40 @@ export default function Index() {
       </header>
 
       {/* HERO */}
-      <section className="relative grain flex min-h-screen items-center overflow-hidden pt-16">
+      <section className="relative grain flex min-h-screen items-center overflow-hidden pt-16 3xl:pt-20">
         <div className="absolute inset-0 z-0">
           <img src={HERO} alt="Зона" className="h-full w-full object-cover opacity-40" />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-background/40" />
         </div>
-        <div className="container relative z-10 px-4 py-20">
-          <div className="max-w-3xl animate-fade-in">
-            <div className="mb-6 inline-flex items-center gap-2 border border-primary/40 bg-background/60 px-3 py-1.5">
-              <span className="h-2 w-2 rounded-full bg-primary animate-flicker" />
-              <span className="font-display text-xs uppercase tracking-[0.3em] text-primary">Сервер онлайн · DayZ</span>
+        <div className="container relative z-10 py-20">
+          <div className="max-w-3xl 3xl:max-w-5xl 4xl:max-w-6xl animate-fade-in">
+            <div className="mb-6 inline-flex items-center gap-2 border border-primary/40 bg-background/60 px-3 py-1.5 3xl:px-4 3xl:py-2">
+              <span className="h-2 w-2 3xl:h-3 3xl:w-3 rounded-full bg-primary animate-flicker" />
+              <span className="font-display text-xs 3xl:text-sm uppercase tracking-[0.3em] text-primary">Сервер онлайн · DayZ</span>
             </div>
-            <h1 className="font-display text-6xl font-bold uppercase leading-[0.9] tracking-tight md:text-8xl">
+            <h1 className="font-display text-6xl font-bold uppercase leading-[0.9] tracking-tight md:text-8xl 3xl:text-[9rem] 4xl:text-[11rem]">
               Добро пожаловать <br />
               <span className="text-primary animate-flicker">на Night Zone</span>
             </h1>
-            <p className="mt-6 max-w-xl font-body text-lg text-muted-foreground">
+            <p className="mt-6 max-w-xl 3xl:max-w-2xl font-body text-lg 3xl:text-2xl text-muted-foreground">
               Хардкорный Stalker RP проект на DayZ. Аномалии, артефакты, фракции и борьба за выживание.
               Развивайся за счёт добровольных пожертвований.
             </p>
-            <div className="mt-10 flex flex-wrap gap-4">
-              <Button size="lg" onClick={() => scrollTo('connect')} className="font-display uppercase tracking-widest animate-radiate">
+            <div className="mt-10 flex flex-wrap gap-4 3xl:gap-6">
+              <Button size="lg" onClick={() => scrollTo('connect')} className="font-display uppercase tracking-widest animate-radiate 3xl:text-base 3xl:px-8 3xl:py-6">
                 <Icon name="Wifi" size={18} className="mr-2" /> Подключиться
               </Button>
               <a href="/shop">
-                <Button size="lg" variant="outline" className="font-display uppercase tracking-widest border-primary/40">
+                <Button size="lg" variant="outline" className="font-display uppercase tracking-widest border-primary/40 3xl:text-base 3xl:px-8 3xl:py-6">
                   <Icon name="ShoppingCart" size={18} className="mr-2" /> В магазин
                 </Button>
               </a>
             </div>
-            <div className="mt-12 flex flex-wrap gap-8">
+            <div className="mt-12 flex flex-wrap gap-8 3xl:gap-16">
               {[['100', 'Слотов на сервере'], ['8', 'Фракций в Зоне']].map(([n, l]) => (
                 <div key={l}>
-                  <div className="font-display text-4xl font-bold text-primary">{n}</div>
-                  <div className="font-body text-xs uppercase tracking-wider text-muted-foreground">{l}</div>
+                  <div className="font-display text-4xl 3xl:text-6xl font-bold text-primary">{n}</div>
+                  <div className="font-body text-xs 3xl:text-sm uppercase tracking-wider text-muted-foreground">{l}</div>
                 </div>
               ))}
             </div>
@@ -342,10 +343,10 @@ export default function Index() {
       </section>
 
       {/* LORE */}
-      <section id="lore" className="relative border-t border-border py-24">
-        <div className="container px-4">
+      <section id="lore" className="relative border-t border-border py-24 3xl:py-32">
+        <div className="container">
           <SectionTitle icon="BookOpen" sub="Хроники зоны" title="Лор" />
-          <div className="mt-12 max-w-2xl">
+          <div className="mt-12 max-w-2xl 3xl:max-w-4xl">
             <div className="paper p-10 rotate-[-0.5deg]">
               <p className="text-xs uppercase tracking-[0.25em] opacity-50 mb-5" style={{fontFamily:'Caveat,cursive'}}>— Фрагмент из лора сервера —</p>
               <p className="whitespace-pre-line leading-loose text-xl" style={{fontFamily:'Caveat,cursive'}}>
@@ -368,13 +369,13 @@ export default function Index() {
       </section>
 
       {/* FACTIONS */}
-      <section id="factions" className="relative border-t border-border py-24">
-        <div className="container px-4">
+      <section id="factions" className="relative border-t border-border py-24 3xl:py-32">
+        <div className="container">
           <SectionTitle icon="Users" sub="Группировки Зоны" title="Фракции" />
-          <p className="mt-4 max-w-2xl font-body text-muted-foreground">
+          <p className="mt-4 max-w-2xl 3xl:max-w-4xl font-body text-muted-foreground 3xl:text-lg">
             Выбери фракцию — узнай её цели, базу и боевой стиль.
           </p>
-          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 3xl:grid-cols-4">
             {factions.map((f) => {
               const isOpen = selectedFaction === String(f.id);
               return (
@@ -418,20 +419,21 @@ export default function Index() {
       </section>
 
       {/* CONNECT */}
-      <section id="connect" className="relative border-t border-border py-24">
+      <section id="connect" className="relative border-t border-border py-24 3xl:py-32">
         <div className="absolute inset-0 opacity-10">
           <img src={SIGN} alt="" className="h-full w-full object-cover" />
         </div>
-        <div className="container relative px-4">
+        <div className="container relative">
           <SectionTitle icon="Wifi" sub="Точка входа" title="IP для подключения" />
-          <div className="mx-auto mt-12 max-w-3xl">
+          <div className="mx-auto mt-12 max-w-3xl 3xl:max-w-5xl">
             <div className="hazard-stripe h-3 w-full" />
-            <div className="grain rust-border bg-card p-8 md:p-16 text-center">
-              <Icon name="ServerCog" size={52} className="mx-auto text-primary" />
-              <p className="mt-4 font-body text-sm uppercase tracking-widest text-muted-foreground">Адрес сервера DayZ</p>
+            <div className="grain rust-border bg-card p-8 md:p-16 3xl:p-20 text-center">
+              <Icon name="ServerCog" size={52} className="mx-auto text-primary 3xl:hidden" />
+              <Icon name="ServerCog" size={72} className="mx-auto text-primary hidden 3xl:block" />
+              <p className="mt-4 font-body text-sm 3xl:text-base uppercase tracking-widest text-muted-foreground">Адрес сервера DayZ</p>
               <div className="mt-6 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-                <code className="font-display text-2xl font-semibold tracking-widest text-primary lg:text-4xl">{SERVER_IP}</code>
-                <Button onClick={copyIp} variant="outline" className="border-primary/40 font-display uppercase shrink-0">
+                <code className="font-display text-2xl font-semibold tracking-widest text-primary lg:text-4xl 3xl:text-5xl">{SERVER_IP}</code>
+                <Button onClick={copyIp} variant="outline" className="border-primary/40 font-display uppercase shrink-0 3xl:text-base 3xl:px-6 3xl:py-5">
                   <Icon name="Copy" size={16} className="mr-2" /> Копировать
                 </Button>
               </div>
@@ -441,10 +443,10 @@ export default function Index() {
                   ['2', 'Добавь моды', 'Через DayZ Launcher'],
                   ['3', 'Вставь IP', 'И заходи в Зону'],
                 ].map(([n, t, d]) => (
-                  <div key={n} className="border border-border bg-background/50 p-5">
-                    <div className="font-display text-4xl font-bold text-primary/40">{n}</div>
-                    <div className="mt-2 font-display uppercase tracking-wide">{t}</div>
-                    <div className="mt-1 font-body text-sm text-muted-foreground">{d}</div>
+                  <div key={n} className="border border-border bg-background/50 p-5 3xl:p-8">
+                    <div className="font-display text-4xl 3xl:text-6xl font-bold text-primary/40">{n}</div>
+                    <div className="mt-2 font-display uppercase tracking-wide 3xl:text-lg">{t}</div>
+                    <div className="mt-1 font-body text-sm 3xl:text-base text-muted-foreground">{d}</div>
                   </div>
                 ))}
               </div>
@@ -455,21 +457,21 @@ export default function Index() {
       </section>
 
       {/* NEWS */}
-      <section id="news" className="relative border-t border-border py-24">
-        <div className="container px-4">
+      <section id="news" className="relative border-t border-border py-24 3xl:py-32">
+        <div className="container">
           <SectionTitle icon="Radio" sub="Сводки с Зоны" title="Новости и патчи" />
           <div className="mt-12 space-y-5">
             {news.map((n) => (
               <div key={n.id} className="grain rust-border group flex flex-col gap-4 bg-card transition-all hover:border-primary/50 md:flex-row md:items-stretch overflow-hidden">
                 {n.image_url && (
-                  <div className="md:w-48 shrink-0 overflow-hidden">
+                  <div className="md:w-48 3xl:w-72 shrink-0 overflow-hidden">
                     <img src={n.image_url} alt={n.title} className="w-full h-40 md:h-full object-cover" />
                   </div>
                 )}
-                <div className="flex flex-col gap-4 p-6 md:flex-row md:items-center flex-1">
-                  <div className="flex shrink-0 flex-col gap-2 md:w-48">
-                    <span className="font-display text-xl font-bold uppercase tracking-wide text-primary">{n.ver}</span>
-                    <span className="flex items-center gap-2 font-body text-sm text-muted-foreground">
+                <div className="flex flex-col gap-4 p-6 3xl:p-8 md:flex-row md:items-center flex-1">
+                  <div className="flex shrink-0 flex-col gap-2 md:w-48 3xl:w-64">
+                    <span className="font-display text-xl 3xl:text-2xl font-bold uppercase tracking-wide text-primary">{n.ver}</span>
+                    <span className="flex items-center gap-2 font-body text-sm 3xl:text-base text-muted-foreground">
                       <Icon name="Calendar" size={14} /> {n.date}
                     </span>
                     <span className="w-fit border border-accent/50 bg-accent/10 px-2 py-0.5 font-display text-xs uppercase tracking-wider text-accent-foreground">
@@ -477,8 +479,8 @@ export default function Index() {
                     </span>
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-display text-xl font-semibold uppercase tracking-wide">{n.title}</h3>
-                    <p className="mt-2 font-body text-muted-foreground">{n.text}</p>
+                    <h3 className="font-display text-xl 3xl:text-2xl font-semibold uppercase tracking-wide">{n.title}</h3>
+                    <p className="mt-2 font-body text-muted-foreground 3xl:text-lg">{n.text}</p>
                   </div>
                 </div>
               </div>
@@ -489,8 +491,8 @@ export default function Index() {
 
 
       {/* FOOTER */}
-      <footer className="border-t border-border bg-card/50 py-12">
-        <div className="container px-4">
+      <footer className="border-t border-border bg-card/50 py-12 3xl:py-16">
+        <div className="container">
           <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
             <div className="flex items-center gap-3">
               <div className="flex h-9 w-9 items-center justify-center bg-primary text-primary-foreground">
