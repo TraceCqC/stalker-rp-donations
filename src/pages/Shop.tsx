@@ -7,7 +7,6 @@ import { getSessionId } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 
 const SHOP_ITEMS_URL = 'https://functions.poehali.dev/b01b5e13-7c62-4290-b55e-6ebec5ad9fd4';
-const CREATE_ORDER_URL = 'https://functions.poehali.dev/5fedc143-b342-4e15-9b52-04185e36c447';
 const APPLY_PROMO_URL = 'https://functions.poehali.dev/c7d0fb24-4551-4e96-9e1a-dd872cd69bae';
 
 interface ShopItem {
@@ -55,7 +54,7 @@ export default function Shop() {
   const [items, setItems] = useState<ShopItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState('all');
-  const [buyingId, setBuyingId] = useState<number | null>(null);
+
   const [selectedItem, setSelectedItem] = useState<ShopItem | null>(null);
 
   // Promo state
@@ -113,35 +112,9 @@ export default function Shop() {
     }
   };
 
-  const handleBuy = async (item: ShopItem) => {
-    if (!user) {
-      loginWithSteam();
-      return;
-    }
-    setBuyingId(item.id);
-    try {
-      const res = await fetch(CREATE_ORDER_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Session-Id': getSessionId() || '',
-        },
-        body: JSON.stringify({
-          item_id: item.id,
-          promo_code: promoResult?.type === 'discount' ? promoCode.trim() : undefined,
-        }),
-      });
-      const data = await res.json();
-      if (data.pay_url) {
-        window.location.href = data.pay_url;
-      } else {
-        toast({ title: 'Ошибка', description: 'Не удалось создать заказ', variant: 'destructive' });
-      }
-    } catch {
-      toast({ title: 'Ошибка', description: 'Проблема с соединением', variant: 'destructive' });
-    } finally {
-      setBuyingId(null);
-    }
+  const handleBuy = (item: ShopItem) => {
+    if (!user) { loginWithSteam(); return; }
+    toast({ title: 'Скоро!', description: `Оплата для «${item.name}» пока недоступна — подключаем платёжную систему.` });
   };
 
   return (
@@ -401,15 +374,10 @@ export default function Shop() {
                 </div>
                 <Button
                   onClick={() => handleBuy(selectedItem)}
-                  disabled={buyingId === selectedItem.id}
                   size="lg"
                   className="font-display uppercase tracking-widest"
                 >
-                  {buyingId === selectedItem.id ? (
-                    <Icon name="Loader" size={16} className="animate-spin mr-2" />
-                  ) : (
-                    <Icon name="ShoppingCart" size={16} className="mr-2" />
-                  )}
+                  <Icon name="ShoppingCart" size={16} className="mr-2" />
                   {user ? 'Купить' : 'Войти и купить'}
                 </Button>
               </div>
