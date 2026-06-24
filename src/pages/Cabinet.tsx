@@ -110,8 +110,30 @@ export default function Cabinet() {
               <div className="font-display text-3xl font-bold text-primary">{totalSpent.toFixed(0)} ₽</div>
               <div className="font-body text-xs uppercase tracking-wider text-muted-foreground">пожертвовано</div>
             </div>
+            <div className="text-right">
+              <div className="font-display text-3xl font-bold text-green-400">{(user.balance ?? 0).toFixed(0)} ₽</div>
+              <div className="font-body text-xs uppercase tracking-wider text-muted-foreground">баланс</div>
+            </div>
           </div>
         </div>
+
+        {/* Balance block */}
+        {(user.balance ?? 0) > 0 && (
+          <div className="mt-6 grain border border-green-700/40 bg-green-900/10 p-5 flex items-center gap-4">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center bg-green-900/30 text-green-400">
+              <Icon name="Wallet" size={22} />
+            </div>
+            <div className="flex-1">
+              <p className="font-display text-xs uppercase tracking-widest text-green-400">Бонусный баланс</p>
+              <p className="font-body text-sm text-muted-foreground mt-0.5">
+                Начислен через промокод. Будет использован при следующей покупке в магазине.
+              </p>
+            </div>
+            <div className="font-display text-2xl font-bold text-green-400 shrink-0">
+              +{(user.balance ?? 0).toFixed(0)} ₽
+            </div>
+          </div>
+        )}
 
         {/* Purchases */}
         <div className="mt-10">

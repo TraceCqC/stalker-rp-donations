@@ -24,6 +24,7 @@ export interface User {
   avatar_url: string;
   member_since: string;
   is_admin: boolean;
+  balance: number;
 }
 
 export function getSessionId(): string | null {

@@ -32,7 +32,7 @@ def handler(event: dict, context) -> dict:
     cur = conn.cursor()
 
     cur.execute(
-        f"""SELECT u.id, u.steam_id, u.username, u.avatar_url, u.created_at, u.is_admin
+        f"""SELECT u.id, u.steam_id, u.username, u.avatar_url, u.created_at, u.is_admin, u.balance
             FROM {SCHEMA}.sessions s
             JOIN {SCHEMA}.users u ON u.id = s.user_id
             WHERE s.id = %s AND s.expires_at > NOW()""",
@@ -45,7 +45,7 @@ def handler(event: dict, context) -> dict:
         conn.close()
         return {'statusCode': 401, 'headers': CORS, 'body': json.dumps({'error': 'session_expired'})}
 
-    user_id, steam_id, username, avatar_url, created_at, is_admin = row
+    user_id, steam_id, username, avatar_url, created_at, is_admin, balance = row
 
     cur.execute(
         f"""SELECT id, category, item_name, price, status, created_at
@@ -81,6 +81,7 @@ def handler(event: dict, context) -> dict:
                 'avatar_url': avatar_url,
                 'member_since': created_at.isoformat(),
                 'is_admin': is_admin,
+                'balance': float(balance or 0),
             },
             'purchases': purchases,
         }),
