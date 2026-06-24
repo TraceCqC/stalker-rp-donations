@@ -273,6 +273,10 @@ export default function Index() {
                       Админ
                     </a>
                   )}
+                  <a href="/shop" className="hidden md:flex items-center gap-2 border border-primary/40 bg-card px-3 py-1.5 font-display text-sm uppercase tracking-wider text-primary transition-colors hover:border-primary hover:bg-primary/10">
+                    <Icon name="ShoppingCart" size={15} />
+                    Магазин
+                  </a>
                   <button onClick={() => setCabinetOpen(true)} className="flex items-center gap-2 border border-border bg-card px-3 py-1.5 transition-colors hover:border-primary">
                     {user.avatar_url
                       ? <img src={user.avatar_url} alt="" className="h-6 w-6 object-cover" />
