@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 
 const SHOP_ITEMS_URL = 'https://functions.poehali.dev/b01b5e13-7c62-4290-b55e-6ebec5ad9fd4';
 const CREATE_ORDER_URL = 'https://functions.poehali.dev/5fedc143-b342-4e15-9b52-04185e36c447';
+const APPLY_PROMO_URL = 'https://functions.poehali.dev/c7d0fb24-4551-4e96-9e1a-dd872cd69bae';
 
 interface ShopItem {
   id: number;
@@ -57,6 +58,11 @@ export default function Shop() {
   const [buyingId, setBuyingId] = useState<number | null>(null);
   const [selectedItem, setSelectedItem] = useState<ShopItem | null>(null);
 
+  // Promo state
+  const [promoCode, setPromoCode] = useState('');
+  const [promoApplying, setPromoApplying] = useState(false);
+  const [promoResult, setPromoResult] = useState<{ type: string; value: number; discount?: number; promo_id?: number; message: string } | null>(null);
+
   useEffect(() => {
     fetch(SHOP_ITEMS_URL)
       .then((r) => r.json())
@@ -68,6 +74,44 @@ export default function Shop() {
   const filtered = activeCategory === 'all'
     ? items
     : items.filter((i) => i.category === activeCategory);
+
+  const closeModal = () => {
+    setSelectedItem(null);
+    setPromoCode('');
+    setPromoResult(null);
+  };
+
+  const handleApplyPromo = async (item: ShopItem) => {
+    if (!promoCode.trim()) return;
+    if (!user) { loginWithSteam(); return; }
+    setPromoApplying(true);
+    try {
+      const res = await fetch(APPLY_PROMO_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Session-Id': getSessionId() || '' },
+        body: JSON.stringify({ code: promoCode.trim(), item_id: item.id }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        const msgs: Record<string, string> = {
+          not_found: 'Промокод не найден',
+          inactive: 'Промокод неактивен',
+          expired: 'Промокод истёк',
+          limit_reached: 'Лимит использований исчерпан',
+          already_used: 'Вы уже использовали этот промокод',
+          category_mismatch: 'Промокод не действует на эту категорию',
+        };
+        toast({ title: msgs[data.error] ?? 'Ошибка промокода', variant: 'destructive' });
+      } else {
+        setPromoResult(data);
+        toast({ title: '✓ ' + data.message });
+      }
+    } catch {
+      toast({ title: 'Ошибка соединения', variant: 'destructive' });
+    } finally {
+      setPromoApplying(false);
+    }
+  };
 
   const handleBuy = async (item: ShopItem) => {
     if (!user) {
@@ -82,7 +126,10 @@ export default function Shop() {
           'Content-Type': 'application/json',
           'X-Session-Id': getSessionId() || '',
         },
-        body: JSON.stringify({ item_id: item.id }),
+        body: JSON.stringify({
+          item_id: item.id,
+          promo_code: promoResult?.type === 'discount' ? promoCode.trim() : undefined,
+        }),
       });
       const data = await res.json();
       if (data.pay_url) {
@@ -247,10 +294,10 @@ export default function Shop() {
       {selectedItem && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4"
-          onClick={() => setSelectedItem(null)}
+          onClick={closeModal}
         >
           <div
-            className="grain rust-border w-full max-w-lg bg-card overflow-hidden"
+            className="grain rust-border w-full max-w-lg bg-card overflow-hidden max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="hazard-stripe h-1 w-full" />
@@ -278,7 +325,7 @@ export default function Shop() {
                   </h2>
                 </div>
                 <button
-                  onClick={() => setSelectedItem(null)}
+                  onClick={closeModal}
                   className="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
                 >
                   <Icon name="X" size={20} />
@@ -297,10 +344,60 @@ export default function Shop() {
                 {selectedItem.description}
               </p>
 
+              {/* Promo code */}
+              {user && (
+                <div className="mt-5 border-t border-border pt-5">
+                  <p className="font-display text-xs uppercase tracking-widest text-muted-foreground mb-2">Промокод</p>
+                  {promoResult ? (
+                    <div className="flex items-center justify-between gap-3 border border-primary/40 bg-primary/5 px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <Icon name={promoResult.type === 'balance' ? 'Wallet' : 'Percent'} size={16} className="text-primary shrink-0" />
+                        <span className="font-display text-sm text-primary">{promoResult.message}</span>
+                      </div>
+                      <button
+                        onClick={() => { setPromoResult(null); setPromoCode(''); }}
+                        className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                      >
+                        <Icon name="X" size={15} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <input
+                        className="flex-1 border border-border bg-background px-3 py-2 font-display text-sm uppercase tracking-widest text-foreground outline-none focus:border-primary placeholder:normal-case placeholder:tracking-normal placeholder:font-body"
+                        value={promoCode}
+                        onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                        placeholder="Введи промокод"
+                        onKeyDown={(e) => e.key === 'Enter' && handleApplyPromo(selectedItem)}
+                      />
+                      <Button
+                        variant="outline"
+                        onClick={() => handleApplyPromo(selectedItem)}
+                        disabled={promoApplying || !promoCode.trim()}
+                        className="font-display uppercase tracking-widest border-primary/40 shrink-0"
+                      >
+                        {promoApplying ? <Icon name="Loader" size={15} className="animate-spin" /> : 'Применить'}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Footer */}
-              <div className="mt-6 flex items-center justify-between gap-4 border-t border-border pt-5">
-                <div className="font-display text-3xl font-bold text-primary">
-                  {selectedItem.price.toFixed(0)} <span className="text-lg">₽</span>
+              <div className="mt-5 flex items-center justify-between gap-4 border-t border-border pt-5">
+                <div>
+                  {promoResult?.type === 'discount' && promoResult.value > 0 ? (
+                    <>
+                      <div className="font-body text-sm line-through text-muted-foreground">{selectedItem.price.toFixed(0)} ₽</div>
+                      <div className="font-display text-3xl font-bold text-primary">
+                        {Math.max(1, Math.round(selectedItem.price * (1 - promoResult.value / 100)))} <span className="text-lg">₽</span>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="font-display text-3xl font-bold text-primary">
+                      {selectedItem.price.toFixed(0)} <span className="text-lg">₽</span>
+                    </div>
+                  )}
                 </div>
                 <Button
                   onClick={() => handleBuy(selectedItem)}

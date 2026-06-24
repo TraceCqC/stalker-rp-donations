@@ -1,4 +1,4 @@
-"""Создаёт заказ и возвращает ссылку для оплаты через Robokassa. v2"""
+"""Создаёт заказ и возвращает ссылку для оплаты через Robokassa. v3 (промокоды)"""
 import os
 import json
 import hashlib
@@ -47,18 +47,60 @@ def make_robokassa_url(inv_id: int, amount: float, description: str) -> str:
     )
 
 
+def apply_promo(cur, code: str, user_id: int, item_category: str):
+    """Проверяет и применяет промокод скидки. Возвращает (promo_id, discount_pct) или (None, 0)"""
+    if not code:
+        return None, 0
+
+    cur.execute(
+        f"""SELECT id, type, value, category, max_uses, used_count, is_active, expires_at
+            FROM {SCHEMA}.promocodes WHERE code = %s""",
+        (code.strip().upper(),)
+    )
+    promo = cur.fetchone()
+    if not promo:
+        return None, 0
+
+    promo_id, promo_type, value, category, max_uses, used_count, is_active, expires_at = promo
+
+    if not is_active or promo_type != 'discount':
+        return None, 0
+
+    if expires_at:
+        from datetime import datetime, timezone
+        if datetime.now(timezone.utc) > expires_at.replace(tzinfo=timezone.utc):
+            return None, 0
+
+    if max_uses is not None and used_count >= max_uses:
+        return None, 0
+
+    cur.execute(
+        f"SELECT id FROM {SCHEMA}.promocode_uses WHERE promocode_id = %s AND user_id = %s",
+        (promo_id, user_id)
+    )
+    if cur.fetchone():
+        return None, 0
+
+    if category and category != item_category:
+        return None, 0
+
+    return promo_id, float(value)
+
+
 def handler(event: dict, context) -> dict:
     if event.get('httpMethod') == 'OPTIONS':
         return {'statusCode': 200, 'headers': CORS, 'body': ''}
 
     headers = event.get('headers') or {}
-    session_id = headers.get('X-Session-Id', '').strip() or None
+    session_id = headers.get('X-Session-Id', '').strip() or headers.get('x-session-id', '').strip() or None
 
     if not session_id:
         return {'statusCode': 401, 'headers': CORS, 'body': json.dumps({'error': 'not_authorized'})}
 
     body = json.loads(event.get('body') or '{}')
     item_id = body.get('item_id')
+    promo_code = body.get('promo_code', '')
+
     if not item_id:
         return {'statusCode': 400, 'headers': CORS, 'body': json.dumps({'error': 'item_id required'})}
 
@@ -71,7 +113,7 @@ def handler(event: dict, context) -> dict:
         return {'statusCode': 401, 'headers': CORS, 'body': json.dumps({'error': 'session_expired'})}
 
     cur.execute(
-        f"SELECT id, name, price FROM {SCHEMA}.shop_items WHERE id = %s AND is_active = TRUE",
+        f"SELECT id, name, price, category FROM {SCHEMA}.shop_items WHERE id = %s AND is_active = TRUE",
         (item_id,),
     )
     item = cur.fetchone()
@@ -79,22 +121,44 @@ def handler(event: dict, context) -> dict:
         cur.close(); conn.close()
         return {'statusCode': 404, 'headers': CORS, 'body': json.dumps({'error': 'item_not_found'})}
 
-    item_id_db, item_name, price = item
+    item_id_db, item_name, price, item_category = item
+    price = float(price)
+
+    promo_id, discount_pct = apply_promo(cur, promo_code, user_id, item_category)
+    discount = round(price * discount_pct / 100, 2) if discount_pct else 0
+    final_price = max(1.0, round(price - discount, 2))
 
     cur.execute(
-        f"""INSERT INTO {SCHEMA}.orders (user_id, item_id, amount, status)
-            VALUES (%s, %s, %s, 'pending') RETURNING id""",
-        (user_id, item_id_db, price),
+        f"""INSERT INTO {SCHEMA}.orders (user_id, item_id, amount, status, promo_id, discount)
+            VALUES (%s, %s, %s, 'pending', %s, %s) RETURNING id""",
+        (user_id, item_id_db, final_price, promo_id, discount),
     )
     order_id = cur.fetchone()[0]
+
+    if promo_id:
+        cur.execute(
+            f"INSERT INTO {SCHEMA}.promocode_uses (promocode_id, user_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
+            (promo_id, user_id)
+        )
+        cur.execute(
+            f"UPDATE {SCHEMA}.promocodes SET used_count = used_count + 1 WHERE id = %s",
+            (promo_id,)
+        )
+
     conn.commit()
     cur.close()
     conn.close()
 
-    pay_url = make_robokassa_url(order_id, float(price), f"NightZone: {item_name}")
+    pay_url = make_robokassa_url(order_id, final_price, f"NightZone: {item_name}")
 
     return {
         'statusCode': 200,
         'headers': CORS,
-        'body': json.dumps({'order_id': order_id, 'pay_url': pay_url}),
+        'body': json.dumps({
+            'order_id': order_id,
+            'pay_url': pay_url,
+            'original_price': price,
+            'discount': discount,
+            'final_price': final_price,
+        }),
     }

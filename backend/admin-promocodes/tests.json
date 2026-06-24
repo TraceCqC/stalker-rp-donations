@@ -1,0 +1,12 @@
+{
+  "tests": [
+    {
+      "name": "GET promocodes list",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": "{\"promocodes\": []}",
+      "bodyMatcher": "partial"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "tests": [
+    {
+      "name": "POST without session returns 401",
+      "method": "POST",
+      "path": "/",
+      "body": {"code": "TEST"},
+      "expectedStatus": 401,
+      "expectedBody": "{\"error\": \"unauthorized\"}",
+      "bodyMatcher": "partial"
+    }
+  ]
+}

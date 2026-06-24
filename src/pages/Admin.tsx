@@ -9,6 +9,7 @@ const ADMIN_URL = 'https://functions.poehali.dev/b71dc419-3bb9-4658-8144-bbc49fb
 const NEWS_URL = 'https://functions.poehali.dev/b6a922f6-e4a1-4920-afa6-ff75d1e0783e';
 const UPLOAD_URL = 'https://functions.poehali.dev/085b509e-630e-4156-9891-b5c5fbf3b537';
 const FACTIONS_URL = 'https://functions.poehali.dev/96537813-a83b-4c40-8239-6bea84d441f5';
+const PROMOS_URL = 'https://functions.poehali.dev/b16d53a7-7451-4a6c-b183-58b124ae7353';
 
 interface ShopItem {
   id: number;
@@ -89,6 +90,38 @@ const FACTION_COLORS = [
   'text-pink-400', 'text-gray-400', 'text-white',
 ];
 
+interface Promocode {
+  id: number;
+  code: string;
+  type: 'balance' | 'discount';
+  value: number;
+  category: string | null;
+  max_uses: number | null;
+  used_count: number;
+  is_active: boolean;
+  expires_at: string | null;
+  created_at: string;
+}
+
+const EMPTY_PROMO: Omit<Promocode, 'id' | 'used_count' | 'created_at'> = {
+  code: '',
+  type: 'discount',
+  value: 10,
+  category: null,
+  max_uses: null,
+  is_active: true,
+  expires_at: null,
+};
+
+const PROMO_CATEGORIES = [
+  { key: null, label: 'Все товары' },
+  { key: 'privilege', label: 'Привилегии' },
+  { key: 'items', label: 'Снаряжение' },
+  { key: 'currency', label: 'Валюта' },
+  { key: 'transport', label: 'Транспорт' },
+  { key: 'furniture', label: 'Фурнитура' },
+];
+
 const CATEGORIES = [
   { key: 'privilege', label: 'Привилегии', icon: 'Shield' },
   { key: 'items', label: 'Снаряжение', icon: 'Package' },
@@ -113,7 +146,7 @@ export default function Admin() {
   const { user, loading: authLoading, loginWithSteam } = useAuth();
   const { toast } = useToast();
 
-  const [tab, setTab] = useState<'shop' | 'news' | 'factions'>('shop');
+  const [tab, setTab] = useState<'shop' | 'news' | 'factions' | 'promos'>('shop');
 
   // Shop state
   const [items, setItems] = useState<ShopItem[]>([]);
@@ -142,6 +175,13 @@ export default function Admin() {
   const [savingFaction, setSavingFaction] = useState(false);
   const [deletingFactionId, setDeletingFactionId] = useState<number | null>(null);
   const [uploadingFactionIcon, setUploadingFactionIcon] = useState(false);
+
+  // Promos state
+  const [promos, setPromos] = useState<Promocode[]>([]);
+  const [promosLoading, setPromosLoading] = useState(false);
+  const [editPromo, setEditPromo] = useState<Partial<Promocode> | null>(null);
+  const [isNewPromo, setIsNewPromo] = useState(false);
+  const [savingPromo, setSavingPromo] = useState(false);
 
   const fetchItems = () => {
     setLoading(true);
@@ -173,10 +213,49 @@ export default function Admin() {
       .finally(() => setFactionsLoading(false));
   };
 
+  const fetchPromos = () => {
+    setPromosLoading(true);
+    fetch(PROMOS_URL, { headers: authHeaders() })
+      .then(r => r.json())
+      .then(d => setPromos(d.promocodes || []))
+      .catch(() => {})
+      .finally(() => setPromosLoading(false));
+  };
+
   useEffect(() => {
-    if (!authLoading && user) { fetchItems(); fetchNews(); fetchFactions(); }
+    if (!authLoading && user) { fetchItems(); fetchNews(); fetchFactions(); fetchPromos(); }
     else if (!authLoading && !user) setLoading(false);
   }, [authLoading, user]);
+
+  // Promo handlers
+  const openNewPromo = () => { setIsNewPromo(true); setEditPromo({ ...EMPTY_PROMO }); };
+  const closePromo = () => setEditPromo(null);
+
+  const handleSavePromo = async () => {
+    if (!editPromo) return;
+    setSavingPromo(true);
+    try {
+      const url = isNewPromo ? PROMOS_URL : `${PROMOS_URL}?id=${editPromo.id}`;
+      const res = await fetch(url, {
+        method: isNewPromo ? 'POST' : 'PUT',
+        headers: authHeaders(),
+        body: JSON.stringify(editPromo),
+      });
+      const data = await res.json();
+      if (data.error) { toast({ title: 'Ошибка: ' + data.error, variant: 'destructive' }); }
+      else { toast({ title: isNewPromo ? 'Промокод создан' : 'Сохранено' }); closePromo(); fetchPromos(); }
+    } catch { toast({ title: 'Ошибка соединения', variant: 'destructive' }); }
+    finally { setSavingPromo(false); }
+  };
+
+  const handleTogglePromo = async (promo: Promocode) => {
+    await fetch(`${PROMOS_URL}?id=${promo.id}`, {
+      method: 'PUT',
+      headers: authHeaders(),
+      body: JSON.stringify({ is_active: !promo.is_active }),
+    });
+    fetchPromos();
+  };
 
   // Shop handlers
   const openNew = () => { setIsNew(true); setEditItem({ id: 0, ...EMPTY_ITEM }); };
@@ -429,6 +508,12 @@ export default function Admin() {
           >
             <Icon name="Users" size={15} /> Фракции
           </button>
+          <button
+            onClick={() => setTab('promos')}
+            className={`flex items-center gap-2 px-6 py-2.5 font-display text-sm uppercase tracking-widest border transition-all ${tab === 'promos' ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:border-primary/40'}`}
+          >
+            <Icon name="Tag" size={15} /> Промокоды
+          </button>
         </div>
 
         {/* ── SHOP TAB ── */}
@@ -639,6 +724,81 @@ export default function Admin() {
                         className="flex h-8 w-8 items-center justify-center border border-border text-muted-foreground transition-colors hover:border-destructive hover:text-destructive"
                       >
                         {deletingFactionId === f.id ? <Icon name="Loader" size={15} className="animate-spin" /> : <Icon name="Trash2" size={15} />}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ── PROMOS TAB ── */}
+        {tab === 'promos' && (
+          <>
+            <div className="flex items-center justify-between mb-10">
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center bg-primary/10 text-primary">
+                  <Icon name="Tag" size={26} />
+                </div>
+                <div>
+                  <p className="font-display text-xs uppercase tracking-[0.3em] text-primary">Администрирование</p>
+                  <h1 className="font-display text-4xl font-bold uppercase tracking-tight">Промокоды</h1>
+                </div>
+              </div>
+              <Button onClick={openNewPromo} className="font-display uppercase tracking-widest">
+                <Icon name="Plus" size={16} className="mr-2" /> Новый промокод
+              </Button>
+            </div>
+
+            {promosLoading ? (
+              <div className="flex items-center justify-center py-24">
+                <Icon name="Radiation" size={48} className="animate-spin text-primary" />
+              </div>
+            ) : promos.length === 0 ? (
+              <div className="grain rust-border bg-card p-12 text-center text-muted-foreground font-body">
+                Промокодов пока нет
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {promos.map((p) => (
+                  <div key={p.id} className={`grain rust-border flex flex-col sm:flex-row sm:items-center gap-4 bg-card p-5 transition-all ${!p.is_active ? 'opacity-50' : ''}`}>
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center bg-primary/10">
+                      <Icon name={p.type === 'balance' ? 'Wallet' : 'Percent'} size={22} className="text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <code className="font-display text-lg font-bold tracking-widest text-primary">{p.code}</code>
+                        <span className={`font-display text-xs px-2 py-0.5 uppercase tracking-wider border ${p.type === 'balance' ? 'bg-green-900/30 text-green-400 border-green-700/40' : 'bg-primary/20 text-primary border-primary/30'}`}>
+                          {p.type === 'balance' ? `+${p.value} ₽` : `${p.value}% скидка`}
+                        </span>
+                        {p.category && (
+                          <span className="font-display text-xs px-2 py-0.5 uppercase tracking-wider border border-border text-muted-foreground">
+                            {PROMO_CATEGORIES.find(c => c.key === p.category)?.label ?? p.category}
+                          </span>
+                        )}
+                        {!p.is_active && (
+                          <span className="font-display text-xs px-2 py-0.5 uppercase tracking-wider border border-border bg-muted text-muted-foreground">Неактивен</span>
+                        )}
+                      </div>
+                      <div className="mt-1 flex gap-4 text-xs font-body text-muted-foreground">
+                        <span>Использований: {p.used_count}{p.max_uses ? ` / ${p.max_uses}` : ''}</span>
+                        {p.expires_at && <span>До: {new Date(p.expires_at).toLocaleDateString('ru-RU')}</span>}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        onClick={() => handleTogglePromo(p)}
+                        className={`flex h-8 w-8 items-center justify-center border transition-colors ${p.is_active ? 'border-green-700 text-green-500 hover:bg-green-900/20' : 'border-border text-muted-foreground hover:border-primary/40'}`}
+                        title={p.is_active ? 'Деактивировать' : 'Активировать'}
+                      >
+                        <Icon name={p.is_active ? 'Eye' : 'EyeOff'} size={15} />
+                      </button>
+                      <button
+                        onClick={() => { setIsNewPromo(false); setEditPromo({ ...p }); }}
+                        className="flex h-8 w-8 items-center justify-center border border-border text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+                      >
+                        <Icon name="Pencil" size={15} />
                       </button>
                     </div>
                   </div>
@@ -976,6 +1136,128 @@ export default function Admin() {
                   {isNewFaction ? 'Создать' : 'Сохранить'}
                 </Button>
                 <Button variant="outline" onClick={closeEditFaction} className="font-display uppercase tracking-widest border-border">Отмена</Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Promo Edit Modal */}
+      {editPromo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={closePromo}>
+          <div className="grain rust-border w-full max-w-lg bg-card" onClick={(e) => e.stopPropagation()}>
+            <div className="hazard-stripe h-1 w-full" />
+            <div className="p-6">
+              <div className="mb-6 flex items-center justify-between">
+                <h2 className="font-display text-2xl font-bold uppercase tracking-tight">{isNewPromo ? 'Новый промокод' : 'Редактировать'}</h2>
+                <button onClick={closePromo} className="text-muted-foreground hover:text-foreground"><Icon name="X" size={20} /></button>
+              </div>
+              <div className="space-y-4">
+                {/* Code */}
+                <div>
+                  <label className="mb-1.5 block font-display text-xs uppercase tracking-widest text-muted-foreground">Код промокода</label>
+                  <input
+                    className="w-full border border-border bg-background px-3 py-2 font-display text-sm uppercase tracking-widest text-foreground outline-none focus:border-primary"
+                    value={editPromo.code || ''}
+                    onChange={(e) => setEditPromo({ ...editPromo, code: e.target.value.toUpperCase() })}
+                    placeholder="STALKER2025"
+                  />
+                </div>
+
+                {/* Type */}
+                <div>
+                  <label className="mb-1.5 block font-display text-xs uppercase tracking-widest text-muted-foreground">Тип</label>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setEditPromo({ ...editPromo, type: 'discount' })}
+                      className={`flex-1 flex items-center justify-center gap-2 py-2.5 font-display text-sm uppercase tracking-widest border transition-colors ${editPromo.type === 'discount' ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:border-primary/40'}`}
+                    >
+                      <Icon name="Percent" size={15} /> Скидка %
+                    </button>
+                    <button
+                      onClick={() => setEditPromo({ ...editPromo, type: 'balance' })}
+                      className={`flex-1 flex items-center justify-center gap-2 py-2.5 font-display text-sm uppercase tracking-widest border transition-colors ${editPromo.type === 'balance' ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:border-primary/40'}`}
+                    >
+                      <Icon name="Wallet" size={15} /> Баланс ₽
+                    </button>
+                  </div>
+                </div>
+
+                {/* Value */}
+                <div>
+                  <label className="mb-1.5 block font-display text-xs uppercase tracking-widest text-muted-foreground">
+                    {editPromo.type === 'discount' ? 'Скидка (%)' : 'Сумма (₽)'}
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max={editPromo.type === 'discount' ? 100 : undefined}
+                    className="w-full border border-border bg-background px-3 py-2 font-body text-sm text-foreground outline-none focus:border-primary"
+                    value={editPromo.value ?? ''}
+                    onChange={(e) => setEditPromo({ ...editPromo, value: parseFloat(e.target.value) || 0 })}
+                  />
+                </div>
+
+                {/* Category — только для скидок */}
+                {editPromo.type === 'discount' && (
+                  <div>
+                    <label className="mb-1.5 block font-display text-xs uppercase tracking-widest text-muted-foreground">Категория товаров</label>
+                    <div className="flex flex-wrap gap-2">
+                      {PROMO_CATEGORIES.map((c) => (
+                        <button
+                          key={String(c.key)}
+                          onClick={() => setEditPromo({ ...editPromo, category: c.key })}
+                          className={`px-3 py-1.5 font-display text-xs uppercase tracking-widest border transition-colors ${editPromo.category === c.key ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:border-primary/40'}`}
+                        >
+                          {c.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Max uses + expires */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="mb-1.5 block font-display text-xs uppercase tracking-widest text-muted-foreground">Макс. использований</label>
+                    <input
+                      type="number"
+                      min="1"
+                      className="w-full border border-border bg-background px-3 py-2 font-body text-sm text-foreground outline-none focus:border-primary"
+                      value={editPromo.max_uses ?? ''}
+                      onChange={(e) => setEditPromo({ ...editPromo, max_uses: e.target.value ? parseInt(e.target.value) : null })}
+                      placeholder="Без лимита"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block font-display text-xs uppercase tracking-widest text-muted-foreground">Дата окончания</label>
+                    <input
+                      type="date"
+                      className="w-full border border-border bg-background px-3 py-2 font-body text-sm text-foreground outline-none focus:border-primary"
+                      value={editPromo.expires_at ? editPromo.expires_at.slice(0, 10) : ''}
+                      onChange={(e) => setEditPromo({ ...editPromo, expires_at: e.target.value || null })}
+                    />
+                  </div>
+                </div>
+
+                {/* Active toggle */}
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="accent-primary h-4 w-4"
+                    checked={editPromo.is_active ?? true}
+                    onChange={(e) => setEditPromo({ ...editPromo, is_active: e.target.checked })}
+                  />
+                  <span className="font-display text-xs uppercase tracking-widest">Активен</span>
+                </label>
+              </div>
+
+              <div className="mt-6 flex gap-3">
+                <Button onClick={handleSavePromo} disabled={savingPromo} className="flex-1 font-display uppercase tracking-widest">
+                  {savingPromo ? <Icon name="Loader" size={16} className="mr-2 animate-spin" /> : <Icon name="Save" size={16} className="mr-2" />}
+                  {isNewPromo ? 'Создать' : 'Сохранить'}
+                </Button>
+                <Button variant="outline" onClick={closePromo} className="font-display uppercase tracking-widest border-border">Отмена</Button>
               </div>
             </div>
           </div>
