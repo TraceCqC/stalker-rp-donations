@@ -5,12 +5,12 @@ import { useAuth } from '@/hooks/use-auth';
 import { getSessionId } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 
-const ADMIN_URL = 'https://functions.poehali.dev/b71dc419-3bb9-4658-8144-bbc49fb591dd';
-const NEWS_URL = 'https://functions.poehali.dev/b6a922f6-e4a1-4920-afa6-ff75d1e0783e';
-const UPLOAD_URL = 'https://functions.poehali.dev/085b509e-630e-4156-9891-b5c5fbf3b537';
-const FACTIONS_URL = 'https://functions.poehali.dev/96537813-a83b-4c40-8239-6bea84d441f5';
-const PROMOS_URL = 'https://functions.poehali.dev/b16d53a7-7451-4a6c-b183-58b124ae7353';
-const CATEGORIES_URL = 'https://functions.poehali.dev/4be20cea-595d-46cf-89b0-19bcba5d0e91';
+const ADMIN_URL = import.meta.env.VITE_FN_ADMIN_ITEMS;
+const NEWS_URL = import.meta.env.VITE_FN_ADMIN_NEWS;
+const UPLOAD_URL = import.meta.env.VITE_FN_UPLOAD_IMAGE;
+const FACTIONS_URL = import.meta.env.VITE_FN_ADMIN_FACTIONS;
+const PROMOS_URL = import.meta.env.VITE_FN_ADMIN_PROMOS;
+const CATEGORIES_URL = import.meta.env.VITE_FN_ADMIN_CATEGORIES;
 
 interface ShopItem {
   id: number;

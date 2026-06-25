@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 
-const AUTH_ME_URL = 'https://functions.poehali.dev/085b5268-60a1-42ec-92f7-19cb411dcd7d';
-const LOGOUT_URL = 'https://functions.poehali.dev/3f106363-957e-4cd7-9dee-5468f71d6997';
+const AUTH_ME_URL = import.meta.env.VITE_FN_AUTH_ME;
+const LOGOUT_URL = import.meta.env.VITE_FN_AUTH_LOGOUT;
 
-const SITE_URL = 'https://nightzone.shop';
+const SITE_URL = import.meta.env.VITE_SITE_URL;
 const STEAM_CALLBACK_URL = `${SITE_URL}/steam-auth`;
 
 const SESSION_KEY = 'nz_session_id';

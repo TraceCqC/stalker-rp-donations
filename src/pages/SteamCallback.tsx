@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { setSessionId } from '@/hooks/use-auth';
 
-const CALLBACK_URL = 'https://functions.poehali.dev/edbd3d47-b8f0-4f79-beaf-4ba48d8f3bf6';
+const CALLBACK_URL = import.meta.env.VITE_FN_STEAM_CALLBACK;
 const MAX_RETRIES = 8;
 const RETRY_DELAY_MS = 4000;
 

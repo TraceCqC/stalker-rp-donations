@@ -6,8 +6,8 @@ import { useAuth } from '@/hooks/use-auth';
 import { getSessionId } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 
-const SHOP_ITEMS_URL = 'https://functions.poehali.dev/b01b5e13-7c62-4290-b55e-6ebec5ad9fd4';
-const APPLY_PROMO_URL = 'https://functions.poehali.dev/c7d0fb24-4551-4e96-9e1a-dd872cd69bae';
+const SHOP_ITEMS_URL = import.meta.env.VITE_FN_SHOP_ITEMS;
+const APPLY_PROMO_URL = import.meta.env.VITE_FN_SHOP_APPLY_PROMO;
 
 interface ShopItem {
   id: number;
