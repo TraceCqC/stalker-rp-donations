@@ -10,6 +10,7 @@ const NEWS_URL = 'https://functions.poehali.dev/b6a922f6-e4a1-4920-afa6-ff75d1e0
 const UPLOAD_URL = 'https://functions.poehali.dev/085b509e-630e-4156-9891-b5c5fbf3b537';
 const FACTIONS_URL = 'https://functions.poehali.dev/96537813-a83b-4c40-8239-6bea84d441f5';
 const PROMOS_URL = 'https://functions.poehali.dev/b16d53a7-7451-4a6c-b183-58b124ae7353';
+const CATEGORIES_URL = 'https://functions.poehali.dev/4be20cea-595d-46cf-89b0-19bcba5d0e91';
 
 interface ShopItem {
   id: number;
@@ -122,13 +123,6 @@ const PROMO_CATEGORIES = [
   { key: 'furniture', label: 'Фурнитура' },
 ];
 
-const CATEGORIES = [
-  { key: 'privilege', label: 'Привилегии', icon: 'Shield' },
-  { key: 'items', label: 'Снаряжение', icon: 'Package' },
-  { key: 'currency', label: 'Валюта', icon: 'Coins' },
-  { key: 'transport', label: 'Транспорт', icon: 'Car' },
-  { key: 'furniture', label: 'Фурнитура', icon: 'Armchair' },
-];
 
 const CAT_ICON: Record<string, string> = {
   privilege: 'Shield',
@@ -138,6 +132,29 @@ const CAT_ICON: Record<string, string> = {
   furniture: 'Armchair',
 };
 
+interface Category {
+  id: number;
+  key: string;
+  label: string;
+  icon: string;
+  sort_order: number;
+  is_active: boolean;
+}
+
+const EMPTY_CATEGORY: Omit<Category, 'id'> = {
+  key: '',
+  label: '',
+  icon: 'Package',
+  sort_order: 0,
+  is_active: true,
+};
+
+const LUCIDE_ICONS = [
+  'Package', 'Shield', 'Coins', 'Car', 'Armchair', 'Sword', 'Zap',
+  'Star', 'Heart', 'Flame', 'Truck', 'Wrench', 'Box', 'Gift',
+  'Crosshair', 'Skull', 'Gem', 'Crown', 'Anchor', 'Rocket',
+];
+
 function authHeaders() {
   return { 'Content-Type': 'application/json', 'X-Session-Id': getSessionId() || '' };
 }
@@ -146,7 +163,7 @@ export default function Admin() {
   const { user, loading: authLoading, loginWithSteam } = useAuth();
   const { toast } = useToast();
 
-  const [tab, setTab] = useState<'shop' | 'news' | 'factions' | 'promos'>('shop');
+  const [tab, setTab] = useState<'shop' | 'news' | 'factions' | 'promos' | 'categories'>('shop');
 
   // Shop state
   const [items, setItems] = useState<ShopItem[]>([]);
@@ -182,6 +199,13 @@ export default function Admin() {
   const [editPromo, setEditPromo] = useState<Partial<Promocode> | null>(null);
   const [isNewPromo, setIsNewPromo] = useState(false);
   const [savingPromo, setSavingPromo] = useState(false);
+
+  // Categories state
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
+  const [editCat, setEditCat] = useState<Category | null>(null);
+  const [isNewCat, setIsNewCat] = useState(false);
+  const [savingCat, setSavingCat] = useState(false);
 
   const fetchItems = () => {
     setLoading(true);
@@ -222,10 +246,47 @@ export default function Admin() {
       .finally(() => setPromosLoading(false));
   };
 
+  const fetchCategories = () => {
+    setCategoriesLoading(true);
+    fetch(CATEGORIES_URL, { headers: authHeaders() })
+      .then(r => r.json())
+      .then(d => setCategories(Array.isArray(d) ? d : []))
+      .catch(() => {})
+      .finally(() => setCategoriesLoading(false));
+  };
+
   useEffect(() => {
-    if (!authLoading && user) { fetchItems(); fetchNews(); fetchFactions(); fetchPromos(); }
+    if (!authLoading && user) { fetchItems(); fetchNews(); fetchFactions(); fetchPromos(); fetchCategories(); }
     else if (!authLoading && !user) setLoading(false);
   }, [authLoading, user]);
+
+  // Category handlers
+  const openNewCat = () => { setIsNewCat(true); setEditCat({ id: 0, ...EMPTY_CATEGORY }); };
+  const closeCat = () => setEditCat(null);
+
+  const handleSaveCat = async () => {
+    if (!editCat) return;
+    setSavingCat(true);
+    try {
+      const res = await fetch(CATEGORIES_URL, {
+        method: isNewCat ? 'POST' : 'PUT',
+        headers: authHeaders(),
+        body: JSON.stringify(editCat),
+      });
+      const data = await res.json();
+      if (data.error) { toast({ title: 'Ошибка: ' + data.error, variant: 'destructive' }); }
+      else { toast({ title: isNewCat ? 'Категория создана' : 'Сохранено' }); closeCat(); fetchCategories(); }
+    } catch { toast({ title: 'Ошибка соединения', variant: 'destructive' }); }
+    finally { setSavingCat(false); }
+  };
+
+  const handleDeleteCat = async (id: number) => {
+    if (!confirm('Удалить категорию? Товары в ней останутся.')) return;
+    try {
+      await fetch(CATEGORIES_URL, { method: 'DELETE', headers: authHeaders(), body: JSON.stringify({ id }) });
+      toast({ title: 'Категория удалена' }); fetchCategories();
+    } catch { toast({ title: 'Ошибка', variant: 'destructive' }); }
+  };
 
   // Promo handlers
   const openNewPromo = () => { setIsNewPromo(true); setEditPromo({ ...EMPTY_PROMO }); };
@@ -455,7 +516,7 @@ export default function Admin() {
     );
   }
 
-  const grouped = CATEGORIES.map((cat) => ({ ...cat, items: items.filter((i) => i.category === cat.key) }));
+  const grouped = categories.map((cat) => ({ ...cat, items: items.filter((i) => i.category === cat.key) }));
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -513,6 +574,12 @@ export default function Admin() {
             className={`flex items-center gap-2 px-6 py-2.5 font-display text-sm uppercase tracking-widest border transition-all ${tab === 'promos' ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:border-primary/40'}`}
           >
             <Icon name="Tag" size={15} /> Промокоды
+          </button>
+          <button
+            onClick={() => setTab('categories')}
+            className={`flex items-center gap-2 px-6 py-2.5 font-display text-sm uppercase tracking-widest border transition-all ${tab === 'categories' ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:border-primary/40'}`}
+          >
+            <Icon name="LayoutGrid" size={15} /> Категории
           </button>
         </div>
 
@@ -823,7 +890,7 @@ export default function Admin() {
                 <div>
                   <label className="mb-1.5 block font-display text-xs uppercase tracking-widest text-muted-foreground">Категория</label>
                   <div className="flex flex-wrap gap-2">
-                    {CATEGORIES.map((c) => (
+                    {categories.map((c) => (
                       <button key={c.key} onClick={() => setEditItem({ ...editItem, category: c.key })}
                         className={`px-3 py-1.5 font-display text-xs uppercase tracking-widest border transition-colors ${editItem.category === c.key ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:border-primary/40'}`}>
                         {c.label}
@@ -1261,6 +1328,142 @@ export default function Admin() {
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ── CATEGORIES TAB ── */}
+      {tab === 'categories' && (
+        <div className="flex gap-8">
+          {/* List */}
+          <div className="flex-1">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center bg-primary/10 text-primary">
+                  <Icon name="LayoutGrid" size={26} />
+                </div>
+                <div>
+                  <p className="font-display text-xs uppercase tracking-[0.3em] text-primary">Администрирование</p>
+                  <h1 className="font-display text-3xl font-bold uppercase tracking-tight">Категории магазина</h1>
+                </div>
+              </div>
+              <Button onClick={openNewCat} className="font-display uppercase tracking-widest">
+                <Icon name="Plus" size={16} className="mr-2" /> Добавить
+              </Button>
+            </div>
+
+            {categoriesLoading ? (
+              <div className="flex items-center justify-center py-16">
+                <Icon name="Loader" size={32} className="animate-spin text-primary" />
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {categories.map((cat) => (
+                  <div key={cat.id} className="grain rust-border flex items-center gap-4 bg-card p-4">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center bg-primary/10 text-primary">
+                      <Icon name={cat.icon} size={20} />
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-display text-base font-semibold uppercase tracking-wide">{cat.label}</div>
+                      <div className="font-body text-xs text-muted-foreground">ключ: {cat.key} · порядок: {cat.sort_order}</div>
+                    </div>
+                    <span className={`font-display text-xs uppercase tracking-widest ${cat.is_active ? 'text-green-400' : 'text-muted-foreground'}`}>
+                      {cat.is_active ? 'Активна' : 'Скрыта'}
+                    </span>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" className="border-border font-display uppercase" onClick={() => { setIsNewCat(false); setEditCat({ ...cat }); }}>
+                        <Icon name="Pencil" size={14} />
+                      </Button>
+                      <Button size="sm" variant="outline" className="border-red-800 text-red-400 hover:bg-red-900/20 font-display uppercase" onClick={() => handleDeleteCat(cat.id)}>
+                        <Icon name="Trash2" size={14} />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+                {categories.length === 0 && (
+                  <div className="grain rust-border bg-card p-10 text-center text-muted-foreground font-display uppercase tracking-widest">
+                    Категорий пока нет
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Edit panel */}
+          {editCat && (
+            <div className="w-96 shrink-0">
+              <div className="grain rust-border bg-card p-6 space-y-5 sticky top-24">
+                <h2 className="font-display text-xl font-bold uppercase tracking-tight">
+                  {isNewCat ? 'Новая категория' : 'Редактировать'}
+                </h2>
+
+                <div>
+                  <label className="mb-1.5 block font-display text-xs uppercase tracking-widest text-muted-foreground">Название</label>
+                  <input
+                    className="w-full border border-border bg-background px-3 py-2 font-body text-sm text-foreground outline-none focus:border-primary"
+                    value={editCat.label}
+                    onChange={(e) => setEditCat({ ...editCat, label: e.target.value })}
+                    placeholder="Привилегии"
+                  />
+                </div>
+
+                {isNewCat && (
+                  <div>
+                    <label className="mb-1.5 block font-display text-xs uppercase tracking-widest text-muted-foreground">Ключ (латиница)</label>
+                    <input
+                      className="w-full border border-border bg-background px-3 py-2 font-body text-sm text-foreground outline-none focus:border-primary"
+                      value={editCat.key}
+                      onChange={(e) => setEditCat({ ...editCat, key: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '') })}
+                      placeholder="privilege"
+                    />
+                  </div>
+                )}
+
+                <div>
+                  <label className="mb-1.5 block font-display text-xs uppercase tracking-widest text-muted-foreground">Иконка</label>
+                  <div className="flex flex-wrap gap-2">
+                    {LUCIDE_ICONS.map((ico) => (
+                      <button
+                        key={ico}
+                        title={ico}
+                        onClick={() => setEditCat({ ...editCat, icon: ico })}
+                        className={`flex h-9 w-9 items-center justify-center border transition-colors ${editCat.icon === ico ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:border-primary/40'}`}
+                      >
+                        <Icon name={ico} size={16} />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block font-display text-xs uppercase tracking-widest text-muted-foreground">Порядок сортировки</label>
+                  <input
+                    type="number"
+                    className="w-full border border-border bg-background px-3 py-2 font-body text-sm text-foreground outline-none focus:border-primary"
+                    value={editCat.sort_order}
+                    onChange={(e) => setEditCat({ ...editCat, sort_order: parseInt(e.target.value) || 0 })}
+                  />
+                </div>
+
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="accent-primary h-4 w-4"
+                    checked={editCat.is_active}
+                    onChange={(e) => setEditCat({ ...editCat, is_active: e.target.checked })}
+                  />
+                  <span className="font-display text-xs uppercase tracking-widest">Активна (видна в магазине)</span>
+                </label>
+
+                <div className="flex gap-3">
+                  <Button onClick={handleSaveCat} disabled={savingCat} className="flex-1 font-display uppercase tracking-widest">
+                    {savingCat ? <Icon name="Loader" size={16} className="mr-2 animate-spin" /> : <Icon name="Save" size={16} className="mr-2" />}
+                    {isNewCat ? 'Создать' : 'Сохранить'}
+                  </Button>
+                  <Button variant="outline" onClick={closeCat} className="font-display uppercase tracking-widest border-border">Отмена</Button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

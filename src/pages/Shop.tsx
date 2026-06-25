@@ -21,22 +21,13 @@ interface ShopItem {
   image_url: string | null;
 }
 
-const CATEGORIES = [
-  { key: 'all', label: 'Все товары', icon: 'LayoutGrid' },
-  { key: 'privilege', label: 'Привилегии', icon: 'Shield' },
-  { key: 'items', label: 'Снаряжение', icon: 'Package' },
-  { key: 'currency', label: 'Валюта Зоны', icon: 'Coins' },
-  { key: 'transport', label: 'Транспорт', icon: 'Car' },
-  { key: 'furniture', label: 'Фурнитура', icon: 'Armchair' },
-];
-
-const CAT_ICON: Record<string, string> = {
-  privilege: 'Shield',
-  items: 'Package',
-  currency: 'Coins',
-  transport: 'Car',
-  furniture: 'Armchair',
-};
+interface Category {
+  id: number;
+  key: string;
+  label: string;
+  icon: string;
+  sort_order: number;
+}
 
 const BADGE_COLOR: Record<string, string> = {
   'Популярно': 'bg-primary text-primary-foreground',
@@ -52,6 +43,7 @@ export default function Shop() {
   const navigate = useNavigate();
 
   const [items, setItems] = useState<ShopItem[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState('all');
 
@@ -65,7 +57,10 @@ export default function Shop() {
   useEffect(() => {
     fetch(SHOP_ITEMS_URL)
       .then((r) => r.json())
-      .then((d) => setItems(d.items || []))
+      .then((d) => {
+        setItems(d.items || []);
+        setCategories(d.categories || []);
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
@@ -172,7 +167,18 @@ export default function Shop() {
       <div className="container px-4 py-12">
         {/* Category tabs */}
         <div className="flex flex-wrap gap-2 mb-10">
-          {CATEGORIES.map((cat) => (
+          <button
+            onClick={() => setActiveCategory('all')}
+            className={`grain flex items-center gap-2 px-5 py-2.5 font-display text-sm uppercase tracking-widest transition-all border ${
+              activeCategory === 'all'
+                ? 'border-primary bg-primary/10 text-primary'
+                : 'border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground'
+            }`}
+          >
+            <Icon name="LayoutGrid" size={16} />
+            Все товары
+          </button>
+          {categories.map((cat) => (
             <button
               key={cat.key}
               onClick={() => setActiveCategory(cat.key)}
@@ -215,13 +221,13 @@ export default function Shop() {
                   </div>
                 ) : (
                   <div className="w-full h-32 flex items-center justify-center bg-primary/5 border-b border-border">
-                    <Icon name={CAT_ICON[item.category] ?? 'Package'} size={42} className="text-primary/40" />
+                    <Icon name={categories.find((c) => c.key === item.category)?.icon ?? 'Package'} size={42} className="text-primary/40" />
                   </div>
                 )}
 
                 <div className="p-5 flex-1 flex flex-col">
                   <p className="font-display text-xs uppercase tracking-[0.3em] text-primary mb-1">
-                    {CATEGORIES.find((c) => c.key === item.category)?.label}
+                    {categories.find((c) => c.key === item.category)?.label}
                   </p>
                   <h3 className="font-display text-xl font-bold uppercase tracking-tight leading-tight">
                     {item.name}
@@ -282,7 +288,7 @@ export default function Shop() {
               </div>
             ) : (
               <div className="w-full h-32 flex items-center justify-center bg-primary/5 border-b border-border">
-                <Icon name={CAT_ICON[selectedItem.category] ?? 'Package'} size={52} className="text-primary/40" />
+                <Icon name={categories.find((c) => c.key === selectedItem.category)?.icon ?? 'Package'} size={52} className="text-primary/40" />
               </div>
             )}
 
@@ -291,7 +297,7 @@ export default function Shop() {
               <div className="flex items-start justify-between gap-4 mb-4">
                 <div>
                   <p className="font-display text-xs uppercase tracking-[0.3em] text-primary mb-1">
-                    {CATEGORIES.find((c) => c.key === selectedItem.category)?.label}
+                    {categories.find((c) => c.key === selectedItem.category)?.label}
                   </p>
                   <h2 className="font-display text-2xl font-bold uppercase tracking-tight leading-tight">
                     {selectedItem.name}

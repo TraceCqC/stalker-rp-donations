@@ -23,16 +23,22 @@ def handler(event: dict, context) -> dict:
 
     conn = get_db()
     cur = conn.cursor()
+
+    cur.execute(
+        f"""SELECT id, key, label, icon, sort_order FROM {SCHEMA}.categories
+            WHERE is_active = TRUE ORDER BY sort_order, id"""
+    )
+    categories = [
+        {'id': r[0], 'key': r[1], 'label': r[2], 'icon': r[3], 'sort_order': r[4]}
+        for r in cur.fetchall()
+    ]
+
     cur.execute(
         f"""SELECT id, category, name, description, price, badge, is_popular, sort_order, image_url
             FROM {SCHEMA}.shop_items
             WHERE is_active = TRUE
             ORDER BY category, sort_order"""
     )
-    rows = cur.fetchall()
-    cur.close()
-    conn.close()
-
     items = [
         {
             'id': r[0],
@@ -45,11 +51,14 @@ def handler(event: dict, context) -> dict:
             'sort_order': r[7],
             'image_url': r[8],
         }
-        for r in rows
+        for r in cur.fetchall()
     ]
+
+    cur.close()
+    conn.close()
 
     return {
         'statusCode': 200,
         'headers': CORS,
-        'body': json.dumps({'items': items}),
+        'body': json.dumps({'items': items, 'categories': categories}),
     }
